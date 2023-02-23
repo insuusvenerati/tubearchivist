@@ -287,7 +287,7 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
         youtube_id = self.json_data["youtube_id"]
         title = self.json_data["title"]
         clean_title = clean_string(title)
-        filename = f"{timestamp}_{youtube_id}_{clean_title}.mp4"
+        filename = f"{timestamp}_[{youtube_id}]_{clean_title}.mp4"
         media_url = os.path.join(clean_channel_name, filename)
         self.json_data["media_url"] = media_url
 
