@@ -92,7 +92,9 @@
 <div id="player" class="player-wrapper"></div>
 <div class="boxed-content {% if view_style == "grid" %}boxed-{{ grid_items }}{% endif %}">
     <div class="video-list {{ view_style }} {% if view_style == "grid" %}grid-{{ grid_items }}{% endif %}">
-        {% if results %}
+        {{ results|json_script:'results' }}
+        <div id="root"></div>
+        {% comment %} {% if results %}
             {% for video in results %}
                 <div class="video-item {{ view_style }}">
                     <a href="#player" data-id="{{ video.source.youtube_id }}" onclick="createPlayer(this)">
@@ -129,7 +131,7 @@
         {% else %}
             <h2>No videos found...</h2>
             <p>If you've already added a channel or playlist, try going to the <a href="{% url 'downloads' %}">downloads page</a> to start the scan and download tasks.</p>
-        {% endif %}
+        {% endif %} {% endcomment %}
     </div>
 </div>
 {% endblock content %}
