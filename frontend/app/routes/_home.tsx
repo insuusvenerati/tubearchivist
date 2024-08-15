@@ -1,25 +1,18 @@
+import { LoaderFunctionArgs } from '@remix-run/node';
 import { Outlet, useLoaderData, useLocation, useSearchParams } from '@remix-run/react';
 import { useEffect, useState } from 'react';
-import Footer, { TaUpdateType } from '~/src/components/Footer';
-import { UserMeType } from '~/src/api/actions/updateUserConfig';
-import loadIsAdmin from '~/src/functions/getIsAdmin';
-import Navigation from '~/src/components/Navigation';
+import { authenticator } from '~/services/auth.server';
 import loadAuth from '~/src/api/loader/loadAuth';
-import { redirect } from 'react-router-dom';
-import { RoutesList } from '~/src/configuration/routes/RouteList';
 import loadUserMeConfig from '~/src/api/loader/loadUserConfig';
-import { LoaderFunctionArgs } from '@remix-run/node';
+import Footer, { TaUpdateType } from '~/src/components/Footer';
+import Navigation from '~/src/components/Navigation';
+import loadIsAdmin from '~/src/functions/getIsAdmin';
 
 export type AuthenticationType = {
   response: string;
   user: number;
   version: string;
   ta_update: TaUpdateType;
-};
-
-type BaseLoaderData = {
-  userConfig: UserMeType;
-  auth: AuthenticationType;
 };
 
 export type OutletContextType = {
@@ -31,34 +24,25 @@ export type OutletContextType = {
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   console.log('------------ after reload');
 
-  const auth = await loadAuth(request);
-  // if (auth.status === 403) {
-  //   return redirect(RoutesList.Login);
-  // }
+  const user = await authenticator.isAuthenticated(request, { failureRedirect: '/login' });
+  const auth = await loadAuth(user);
 
-  const authData = await auth.json();
+  const userConfig = await loadUserMeConfig(user);
 
-  const userConfig = await loadUserMeConfig(request);
-
-  return { userConfig, auth: authData };
+  return { userConfig, auth };
 };
 
 const Base = () => {
-  const { userConfig, auth } = useLoaderData() as BaseLoaderData;
+  const { userConfig, auth } = useLoaderData<typeof loader>();
   const location = useLocation();
-
-  const userMeConfig = userConfig.config;
-
   const searchParams = new URLSearchParams(location.search);
-
   const currentPageFromUrl = Number(searchParams.get('page'));
-
   const [currentPage, setCurrentPage] = useState(currentPageFromUrl);
   const [, setSearchParams] = useSearchParams();
 
   const isAdmin = loadIsAdmin(userConfig);
   const version = auth.version;
-  const taUpdate = auth.ta_update;
+  const taUpdate = auth?.ta_update;
 
   useEffect(() => {
     if (currentPageFromUrl !== currentPage) {

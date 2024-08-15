@@ -12,13 +12,8 @@ export type LoginResponseType = {
   user_groups: [];
 };
 
-const signIn = async (request: Request) => {
+const signIn = async ({ username, password }: { username: string; password: string }) => {
   const apiUrl = getApiUrl();
-
-  const formData = await request.formData();
-
-  const username = formData.get('username');
-  const password = formData.get('password');
 
   const response = await fetch(`${apiUrl}/api/user/login/`, {
     method: 'POST',
@@ -50,7 +45,11 @@ const signIn = async (request: Request) => {
     console.log('Might be already logged in.', await response.json());
   }
 
-  return { data: response.json(), cookie: { sessionIdCookie, csrftokenCookie } };
+  if (!sessionIdCookie || !csrftokenCookie) {
+    throw json({ error: 'Failed to login.' }, { status: 403 });
+  }
+
+  return { sessionid: sessionIdCookie.value, csrftoken: csrftokenCookie.value };
 };
 
 export default signIn;

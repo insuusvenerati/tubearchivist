@@ -10,13 +10,10 @@ type SessionFlashData = {
   error: string;
 };
 
-const { getSession, commitSession, destroySession } = createCookieSessionStorage<
-  SessionData,
-  SessionFlashData
->({
+export const sessionStorage = createCookieSessionStorage<SessionData, SessionFlashData>({
   // a Cookie from `createCookie` or the CookieOptions to create one
   cookie: {
-    name: 'sessionid',
+    name: 'session',
 
     // all of these are optional
     // domain: 'remix.run',
@@ -33,4 +30,4 @@ const { getSession, commitSession, destroySession } = createCookieSessionStorage
   },
 });
 
-export { getSession, commitSession, destroySession };
+export const { getSession, commitSession, destroySession } = sessionStorage;

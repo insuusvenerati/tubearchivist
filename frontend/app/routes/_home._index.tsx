@@ -2,6 +2,7 @@ import { LoaderFunctionArgs } from '@remix-run/node';
 import { json, Link, useLoaderData, useOutletContext, useSearchParams } from '@remix-run/react';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { authenticator } from '~/services/auth.server';
 import loadUserMeConfig from '~/src/api/loader/loadUserConfig';
 import loadVideoListByFilter from '~/src/api/loader/loadVideoListByPage';
 import EmbeddableVideoPlayer from '~/src/components/EmbeddableVideoPlayer';
@@ -111,9 +112,11 @@ export type SortOrderType = 'asc' | 'desc';
 export type ViewLayoutType = 'grid' | 'list';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  const user = await authenticator.isAuthenticated(request, { failureRedirect: '/login' });
+
   console.log('------------ after reload');
 
-  const userConfig = await loadUserMeConfig(request);
+  const userConfig = await loadUserMeConfig(user);
 
   return json({ userConfig });
 };
@@ -124,8 +127,6 @@ const Home = () => {
   const outletContext = useOutletContext() as OutletContextType;
   const [searchParams] = useSearchParams();
   const videoId = searchParams.get('videoId');
-
-  console.log('data', data);
 
   const userMeConfig = data?.userConfig?.config;
 
