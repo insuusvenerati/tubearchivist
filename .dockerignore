@@ -19,3 +19,5 @@ assets/*
 
 # for local testing only
 testing.sh
+
+frontend/node_modules/

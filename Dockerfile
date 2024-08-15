@@ -1,17 +1,17 @@
 # multi stage to build tube archivist
 # build python wheel, download and extract ffmpeg, copy into final image
 
-FROM node:lts-alpine as node-builder
+# FROM node:lts-alpine as node-builder
 
-# RUN npm config set registry https://registry.npmjs.org/
+# # RUN npm config set registry https://registry.npmjs.org/
 
-COPY ./frontend /frontend
+# COPY ./frontend /frontend
 
-WORKDIR /frontend
-RUN npm i
-RUN npm run build:deploy
+# WORKDIR /frontend
+# RUN npm i
+# RUN npm run build:deploy
 
-WORKDIR /
+# WORKDIR /
 
 # First stage to build python wheel
 FROM python:3.11.8-slim-bookworm AS builder
@@ -54,9 +54,9 @@ RUN apt-get clean && apt-get -y update && apt-get -y install --no-install-recomm
 
 # install debug tools for testing environment
 RUN if [ "$INSTALL_DEBUG" ] ; then \
-        apt-get -y update && apt-get -y install --no-install-recommends \
-        vim htop bmon net-tools iputils-ping procps \
-        && pip install --user ipython pytest pytest-django \
+    apt-get -y update && apt-get -y install --no-install-recommends \
+    vim htop bmon net-tools iputils-ping procps \
+    && pip install --user ipython pytest pytest-django \
     ; fi
 
 # make folders
@@ -71,7 +71,7 @@ COPY ./backend /app
 COPY ./docker_assets/run.sh /app
 COPY ./docker_assets/uwsgi.ini /app
 
-COPY --from=node-builder ./frontend/dist /app/static
+# COPY --from=node-builder ./frontend/build/client /app/static
 
 # volumes
 VOLUME /cache

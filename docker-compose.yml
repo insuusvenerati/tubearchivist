@@ -4,7 +4,10 @@ services:
   tubearchivist:
     container_name: tubearchivist
     restart: unless-stopped
-    image: bbilly1/tubearchivist
+    # image: bbilly1/tubearchivist
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - 8000:8000
     volumes:
@@ -15,7 +18,7 @@ services:
       - REDIS_HOST=archivist-redis          # don't add protocol
       - HOST_UID=1000
       - HOST_GID=1000
-      - TA_HOST=tubearchivist.local         # set your host name
+      - TA_HOST=localhost        # set your host name
       - TA_USERNAME=tubearchivist           # your initial TA credentials
       - TA_PASSWORD=verysecret              # your initial TA credentials
       - ELASTIC_PASSWORD=verysecret         # set password for Elasticsearch
@@ -35,6 +38,8 @@ services:
     restart: unless-stopped
     expose:
       - "6379"
+    ports:
+      - "6379:6379"
     volumes:
       - redis:/data
     depends_on:
@@ -49,6 +54,8 @@ services:
       - "xpack.security.enabled=true"
       - "discovery.type=single-node"
       - "path.repo=/usr/share/elasticsearch/data/snapshot"
+    ports:
+      - "9200:9200"
     ulimits:
       memlock:
         soft: -1
