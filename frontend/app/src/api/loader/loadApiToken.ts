@@ -1,5 +1,5 @@
 import defaultHeaders from '../../configuration/defaultHeaders';
-import getApiUrl from '../../configuration/getApiUrl';
+import getApiUrl from '../../configuration/getApiUrl.server';
 import getFetchCredentials from '../../configuration/getFetchCredentials';
 import getCookie from '../../functions/getCookie';
 import isDevEnvironment from '../../functions/isDevEnvironment';

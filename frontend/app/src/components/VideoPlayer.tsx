@@ -1,12 +1,9 @@
-import updateVideoProgressById from '../api/actions/updateVideoProgressById';
-import updateWatchedState from '../api/actions/updateWatchedState';
-import { SponsorBlockSegmentType, SponsorBlockType, VideoResponseType } from '../pages/Video';
-import watchedThreshold from '../functions/watchedThreshold';
-import Notifications from './Notifications';
 import { Dispatch, SetStateAction, SyntheticEvent, useState } from 'react';
-import formatTime from '../functions/formatTime';
 import { useSearchParams } from 'react-router-dom';
-import getApiUrl from '../configuration/getApiUrl';
+import formatTime from '../functions/formatTime';
+import watchedThreshold from '../functions/watchedThreshold';
+import { SponsorBlockSegmentType, SponsorBlockType, VideoResponseType } from '../pages/Video';
+import Notifications from './Notifications';
 
 type VideoTag = SyntheticEvent<HTMLVideoElement, Event>;
 
@@ -42,7 +39,7 @@ const Subtitles = ({ subtitles }: SubtitlesProp) => {
         label={label}
         kind="subtitles"
         srcLang={subtitle.lang}
-        src={`${getApiUrl()}${subtitle.media_url}`}
+        // src={`${getApiUrl()}${subtitle.media_url}`}
       />
     );
   });
@@ -82,18 +79,18 @@ const handleTimeUpdate =
     if (currentTime < 10) return;
     if (Number((currentTime % 10).toFixed(1)) <= 0.2) {
       // Check progress every 10 seconds or else progress is checked a few times a second
-      await updateVideoProgressById({
-        youtubeId,
-        currentProgress: currentTime,
-      });
+      // await updateVideoProgressById({
+      //   youtubeId,
+      //   currentProgress: currentTime,
+      // });
 
       if (!watched) {
         // Check if video is already marked as watched
         if (watchedThreshold(currentTime, duration)) {
-          await updateWatchedState({
-            id: youtubeId,
-            is_watched: true,
-          });
+          // await updateWatchedState({
+          //   id: youtubeId,
+          //   is_watched: true,
+          // });
         }
       }
     }
@@ -108,7 +105,7 @@ const handleVideoEnd =
   async () => {
     if (!watched) {
       // Check if video is already marked as watched
-      await updateWatchedState({ id: youtubeId, is_watched: true });
+      // await updateWatchedState({ id: youtubeId, is_watched: true });
     }
 
     setSponsorSegmentSkipped?.((segments: SponsorSegmentsSkippedType) => {
@@ -161,7 +158,7 @@ const VideoPlayer = ({ video, videoProgress, sponsorBlock, embed }: VideoPlayerP
       <div id="player" className={embed ? '' : 'player-wrapper'}>
         <div className={embed ? '' : 'video-main'}>
           <video
-            poster={`${getApiUrl()}${videoThumbUrl}`}
+            // poster={`${getApiUrl()}${videoThumbUrl}`}
             onVolumeChange={(videoTag: VideoTag) => {
               localStorage.setItem('playerVolume', videoTag.currentTarget.volume.toString());
             }}
@@ -180,10 +177,10 @@ const VideoPlayer = ({ video, videoProgress, sponsorBlock, embed }: VideoPlayerP
 
               if (currentTime < 10) return;
 
-              await updateVideoProgressById({
-                youtubeId: videoId,
-                currentProgress: currentTime,
-              });
+              // await updateVideoProgressById({
+              //   youtubeId: videoId,
+              //   currentProgress: currentTime,
+              // });
             }}
             onEnded={handleVideoEnd(videoId, watched)}
             autoPlay={autoplay}
@@ -193,7 +190,7 @@ const VideoPlayer = ({ video, videoProgress, sponsorBlock, embed }: VideoPlayerP
             id="video-item"
           >
             <source
-              src={`${getApiUrl()}${videoUrl}#t=${videoSrcProgress}`}
+              // src={`${getApiUrl()}${videoUrl}#t=${videoSrcProgress}`}
               type="video/mp4"
               id="video-source"
             />

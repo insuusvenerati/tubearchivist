@@ -8,6 +8,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+        - action: rebuild
+          path: ./docker-compose.yml
     ports:
       - 8000:8000
     volumes:
@@ -23,6 +30,7 @@ services:
       - TA_PASSWORD=verysecret              # your initial TA credentials
       - ELASTIC_PASSWORD=verysecret         # set password for Elasticsearch
       - TZ=America/New_York                 # set your time zone
+      - DISABLE_CORS=true
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 2m
@@ -32,6 +40,27 @@ services:
     depends_on:
       - archivist-es
       - archivist-redis
+  # tubearchivist-frontend:
+  #   container_name: tubearchivist-frontend
+  #   restart: unless-stopped
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   develop:
+  #     watch:
+  #       - action: rebuild
+  #         path: ./frontend
+  #         target: /myapp
+  #         ignore:
+  #           - node_modules
+  #       - action: rebuild
+  #         path: ./docker-compose.yml
+  #   environment:
+  #     - TUBEARCHIVIST_HOST=http://tubearchivist:8000
+  #   ports:
+  #     - 3000:3000
+  #   depends_on:
+  #     - tubearchivist
   archivist-redis:
     image: redis/redis-stack-server
     container_name: archivist-redis

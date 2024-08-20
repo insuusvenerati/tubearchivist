@@ -1,23 +1,17 @@
-import { useEffect } from 'react';
-import iconSort from '/img/icon-sort.svg';
+import { useLoaderData } from '@remix-run/react';
+import { loader } from '~/routes/_home._index';
+import { SortByType, SortOrderType, ViewLayoutType } from '../pages/Home';
 import iconAdd from '/img/icon-add.svg';
-import iconSubstract from '/img/icon-substract.svg';
 import iconGridView from '/img/icon-gridview.svg';
 import iconListView from '/img/icon-listview.svg';
-import { SortByType, SortOrderType, ViewLayoutType } from '../pages/Home';
-import updateUserConfig, { UserConfigType } from '../api/actions/updateUserConfig';
+import iconSort from '/img/icon-sort.svg';
+import iconSubstract from '/img/icon-substract.svg';
 
 type FilterbarProps = {
   hideToggleText: string;
   showHidden?: boolean;
-  hideWatched?: boolean;
   isGridView?: boolean;
-  view: ViewLayoutType;
   viewStyleName: string;
-  gridItems: number;
-  sortBy?: SortByType;
-  sortOrder?: SortOrderType;
-  userMeConfig: UserConfigType;
   setShowHidden?: (showHidden: boolean) => void;
   setHideWatched?: (hideWatched: boolean) => void;
   setView: (view: ViewLayoutType) => void;
@@ -30,14 +24,13 @@ type FilterbarProps = {
 const Filterbar = ({
   hideToggleText,
   showHidden,
-  hideWatched,
+  // hideWatched,
   isGridView,
-  view,
+  // view,
   viewStyleName,
-  gridItems,
-  sortBy,
-  sortOrder,
-  userMeConfig,
+  // gridItems,
+  // sortBy,
+  // sortOrder,
   setShowHidden,
   setHideWatched,
   setView,
@@ -46,28 +39,35 @@ const Filterbar = ({
   setGridItems,
   setRefresh,
 }: FilterbarProps) => {
-  useEffect(() => {
-    (async () => {
-      if (
-        userMeConfig.hide_watched !== hideWatched ||
-        userMeConfig[viewStyleName.toString() as keyof typeof userMeConfig] !== view ||
-        userMeConfig.grid_items !== gridItems ||
-        userMeConfig.sort_by !== sortBy ||
-        userMeConfig.sort_order !== sortOrder
-      ) {
-        const userConfig: UserConfigType = {
-          hide_watched: hideWatched,
-          [viewStyleName.toString()]: view,
-          grid_items: gridItems,
-          sort_by: sortBy,
-          sort_order: sortOrder,
-        };
+  const data = useLoaderData<typeof loader>();
+  const {
+    grid_items: gridItems,
+    hide_watched: hideWatched,
+    sort_by: sortBy,
+    sort_order: sortOrder,
+  } = data.userConfig.config;
+  // useEffect(() => {
+  //   (async () => {
+  //     if (
+  //       userMeConfig.hide_watched !== hideWatched ||
+  //       userMeConfig[viewStyleName.toString() as keyof typeof userMeConfig] !== view ||
+  //       userMeConfig.grid_items !== gridItems ||
+  //       userMeConfig.sort_by !== sortBy ||
+  //       userMeConfig.sort_order !== sortOrder
+  //     ) {
+  //       const userConfig: UserConfigType = {
+  //         hide_watched: hideWatched,
+  //         [viewStyleName.toString()]: view,
+  //         grid_items: gridItems,
+  //         sort_by: sortBy,
+  //         sort_order: sortOrder,
+  //       };
 
-        await updateUserConfig(userConfig);
-        setRefresh?.(true);
-      }
-    })();
-  }, [hideWatched, view, gridItems, sortBy, sortOrder, viewStyleName, setRefresh, userMeConfig]);
+  //       await updateUserConfig(userConfig);
+  //       setRefresh?.(true);
+  //     }
+  //   })();
+  // }, [hideWatched, view, gridItems, sortBy, sortOrder, viewStyleName, setRefresh, userMeConfig]);
 
   return (
     <div className="view-controls three">

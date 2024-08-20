@@ -7,6 +7,7 @@ import loadUserMeConfig from '~/src/api/loader/loadUserConfig';
 import Footer, { TaUpdateType } from '~/src/components/Footer';
 import Navigation from '~/src/components/Navigation';
 import loadIsAdmin from '~/src/functions/getIsAdmin';
+import { UserConfigType } from '~/types';
 
 export type AuthenticationType = {
   response: string;
@@ -19,11 +20,12 @@ export type OutletContextType = {
   isAdmin: boolean;
   currentPage: number;
   setCurrentPage: (page: number) => void;
+  userConfig: {
+    config: UserConfigType;
+  };
 };
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
-  console.log('------------ after reload');
-
   const user = await authenticator.isAuthenticated(request, { failureRedirect: '/login' });
   const auth = await loadAuth(user);
 
@@ -82,7 +84,7 @@ const Base = () => {
       <div className="main-content">
         <Navigation isAdmin={isAdmin} />
         {/** Outlet: https://reactrouter.com/en/main/components/outlet */}
-        <Outlet context={{ isAdmin, currentPage, setCurrentPage }} />
+        <Outlet context={{ isAdmin, currentPage, userConfig, setCurrentPage }} />
       </div>
       <Footer version={version} taUpdate={taUpdate} />
     </>

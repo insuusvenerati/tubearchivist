@@ -1,5 +1,5 @@
 import { useLoaderData, useSearchParams } from 'react-router-dom';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 import { useEffect, useState } from 'react';
 import { VideoType, ViewLayoutType } from './Home';
 import loadSearch from '../api/loader/loadSearch';

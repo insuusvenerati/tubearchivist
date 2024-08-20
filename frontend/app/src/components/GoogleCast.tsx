@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
 import { VideoType } from '../pages/Home';
-import updateWatchedState from '../api/actions/updateWatchedState';
-import updateVideoProgressById from '../api/actions/updateVideoProgressById';
 import watchedThreshold from '../functions/watchedThreshold';
 import { VideoProgressType } from './VideoPlayer';
 
@@ -44,18 +42,18 @@ async function castVideoProgress(
 
     if (currentTime % 10 <= 1.0 && currentTime !== 0 && duration !== 0) {
       // Check progress every 10 seconds or else progress is checked a few times a second
-      await updateVideoProgressById({
-        youtubeId: videoId,
-        currentProgress: currentTime,
-      });
+      // await updateVideoProgressById({
+      //   youtubeId: videoId,
+      //   currentProgress: currentTime,
+      // });
 
       if (!video.player.watched) {
         // Check if video is already marked as watched
         if (watchedThreshold(currentTime, duration)) {
-          await updateWatchedState({
-            id: videoId,
-            is_watched: true,
-          });
+          // await updateWatchedState({
+          //   id: videoId,
+          //   is_watched: true,
+          // });
         }
       }
     }
@@ -83,10 +81,10 @@ async function castVideoPaused(
   if (player.mediaInfo != null) {
     if (player.mediaInfo.contentId.includes(videoId)) {
       if (currentTime !== 0 && duration !== 0) {
-        await updateVideoProgressById({
-          youtubeId: videoId,
-          currentProgress: currentTime,
-        });
+        // await updateVideoProgressById({
+        //   youtubeId: videoId,
+        //   currentProgress: currentTime,
+        // });
       }
     }
   }

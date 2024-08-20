@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import importColours, { ColourConstant, ColourVariants } from '../configuration/colours/getColours';
 import { Helmet } from 'react-helmet';
 import Button from '../components/Button';
-import signIn from '../api/actions/signIn';
+import signIn from '../../api/sign-in.server';
 
 const Login = () => {
   const [username, setUsername] = useState('');

@@ -1,68 +1,36 @@
-import { ActionFunctionArgs, LoaderFunctionArgs } from '@remix-run/node';
+import { ActionFunctionArgs, json, LoaderFunctionArgs } from '@remix-run/node';
 import { Form, useActionData } from '@remix-run/react';
-import { useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { AuthorizationError } from 'remix-auth';
 import { authenticator } from '~/services/auth.server';
 import Button from '~/src/components/Button';
 import { RoutesList } from '~/src/configuration/routes/RouteList';
 
 export const action = async ({ request }: ActionFunctionArgs) => {
-  return await authenticator.authenticate('user-pass', request, {
-    successRedirect: '/',
-  });
+  try {
+    return await authenticator.authenticate('user-pass', request, {
+      successRedirect: '/',
+      throwOnError: true,
+    });
+  } catch (error) {
+    if (error instanceof AuthorizationError) {
+      console.log('login error', error);
+      return json({ error: error.cause?.message }, { status: 403 });
+    }
+    if (error instanceof Response) {
+      // Redirects work by throwing a Response so we re throw it to let Remix handle it
+      throw error;
+    }
+  }
 };
 
-//   const signInData = await signIn(request);
+export async function loader({ request }: LoaderFunctionArgs) {
+  return await authenticator.isAuthenticated(request, {
+    successRedirect: '/',
+  });
+}
 
-//   // Create the headers that will need to be returned to the browser. These headers are needed for every subsequent request that require authentication.
-//   const headers = new Headers();
-
-//   // Store the response's `sessionid` cookie into the headers.
-//   const {
-//     name: sessionIdName,
-//     value: sessionIdValue,
-//     ...sessionIdCookieSerializeOptions
-//   } = signInData.cookie.sessionIdCookie as setCookie.Cookie;
-
-//   const {
-//     name: csrftokenName,
-//     value: csrfTokenValue,
-//     ...csrfCookieSerializeOptions
-//   } = signInData.cookie.csrftokenCookie as setCookie.Cookie;
-
-//   if (!sessionIdName || !csrftokenName) {
-//     return json({ error: 'Failed to login.' }, { status: 403 });
-//   }
-
-//   const sessionIdSession = await getSession(request.headers.get('Cookie'));
-
-//   sessionIdSession.set(sessionIdName as 'sessionid', sessionIdValue);
-//   sessionIdSession.set(csrftokenName as 'csrftoken', csrfTokenValue);
-
-//   headers.append(
-//     'Set-Cookie',
-//     await commitSession(
-//       sessionIdSession,
-//       // Use the response's `sessionid` cookie serialization options.
-//       sessionIdCookieSerializeOptions as CookieSerializeOptions,
-//     ),
-//   );
-//   headers.append(
-//     'Set-Cookie',
-//     await commitSession(
-//       sessionIdSession,
-//       // Use the response's `sessionid` cookie serialization options.
-//       csrfCookieSerializeOptions as CookieSerializeOptions,
-//     ),
-//   );
-
-//   return redirect('/', {
-//     headers,
-//   });
-// };
-// importColours(ColourConstant.Dark as ColourVariants);
 const Login = () => {
-  const [saveLogin, setSaveLogin] = useState(false);
   const actionData = useActionData<typeof action>();
 
   return (
@@ -75,7 +43,7 @@ const Login = () => {
         <h1>Tube Archivist</h1>
         <h2>Your Self Hosted YouTube Media Server</h2>
 
-        {/* {actionData?.error && <p className="danger-zone">Failed to login.</p>} */}
+        {actionData?.error && <p className="danger-zone">Failed to login.</p>}
 
         <Form method="POST">
           <input
@@ -98,16 +66,7 @@ const Login = () => {
           />
           <br />
           <p>
-            Remember me:{' '}
-            <input
-              type="checkbox"
-              name="remember_me"
-              id="id_remember_me"
-              checked={saveLogin}
-              onChange={() => {
-                setSaveLogin(!saveLogin);
-              }}
-            />
+            Remember me: <input type="checkbox" name="remember_me" id="id_remember_me" />
           </p>
           <input type="hidden" name="next" value={RoutesList.Home} />
           <Button label="Login" type="submit" />

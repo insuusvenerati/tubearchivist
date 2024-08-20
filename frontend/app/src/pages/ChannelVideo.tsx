@@ -8,7 +8,7 @@ import {
 } from 'react-router-dom';
 import { SortByType, SortOrderType, VideoResponseType, ViewLayoutType } from './Home';
 import { OutletContextType } from './Base';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 import VideoList from '../components/VideoList';
 import Routes from '../configuration/routes/RouteList';
 import Pagination from '../components/Pagination';

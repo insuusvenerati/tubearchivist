@@ -1,5 +1,5 @@
 import { useLoaderData, useNavigate, useOutletContext } from 'react-router-dom';
-import updateUserConfig, { UserConfigType, UserMeType } from '../api/actions/updateUserConfig';
+import updateUserConfig, { UserConfigType, UserMeType } from '../../api/update-user-config.server';
 import { useEffect, useState } from 'react';
 import loadUserMeConfig from '../api/loader/loadUserConfig';
 import { ColourConstant, ColourVariants } from '../configuration/colours/getColours';

@@ -1,10 +1,9 @@
-import iconClose from '/img/icon-close.svg';
+import iconArrowBottom from '/img/icon-arrow-bottom.svg';
+import iconArrowDown from '/img/icon-arrow-down.svg';
 import iconArrowTop from '/img/icon-arrow-top.svg';
 import iconArrowUp from '/img/icon-arrow-up.svg';
-import iconArrowDown from '/img/icon-arrow-down.svg';
-import iconArrowBottom from '/img/icon-arrow-bottom.svg';
+import iconClose from '/img/icon-close.svg';
 import iconRemove from '/img/icon-remove.svg';
-import updateCustomPlaylist from '../api/actions/updateCustomPlaylist';
 
 type MoveVideoMenuProps = {
   playlistId?: string;
@@ -32,33 +31,33 @@ const MoveVideoMenu = ({ playlistId, videoId, setCloseMenu, setRefresh }: MoveVi
         <img
           className="move-video-button"
           data-context="top"
-          onClick={async () => {
-            await updateCustomPlaylist('top', playlistId, videoId);
+          // onClick={async () => {
+          //   await updateCustomPlaylist('top', playlistId, videoId);
 
-            setRefresh(true);
-          }}
+          //   setRefresh(true);
+          // }}
           src={iconArrowTop}
           title="Move to top"
         />
         <img
           className="move-video-button"
           data-context="up"
-          onClick={async () => {
-            await updateCustomPlaylist('up', playlistId, videoId);
+          // onClick={async () => {
+          //   await updateCustomPlaylist('up', playlistId, videoId);
 
-            setRefresh(true);
-          }}
+          //   setRefresh(true);
+          // }}
           src={iconArrowUp}
           title="Move up"
         />
         <img
           className="move-video-button"
           data-context="down"
-          onClick={async () => {
-            await updateCustomPlaylist('down', playlistId, videoId);
+          // onClick={async () => {
+          //   await updateCustomPlaylist('down', playlistId, videoId);
 
-            setRefresh(true);
-          }}
+          //   setRefresh(true);
+          // }}
           src={iconArrowDown}
           title="Move down"
         />
@@ -66,11 +65,11 @@ const MoveVideoMenu = ({ playlistId, videoId, setCloseMenu, setRefresh }: MoveVi
         <img
           className="move-video-button"
           data-context="bottom"
-          onClick={async () => {
-            await updateCustomPlaylist('bottom', playlistId, videoId);
+          // onClick={async () => {
+          //   await updateCustomPlaylist('bottom', playlistId, videoId);
 
-            setRefresh(true);
-          }}
+          //   setRefresh(true);
+          // }}
           src={iconArrowBottom}
           title="Move to bottom"
         />
@@ -78,11 +77,11 @@ const MoveVideoMenu = ({ playlistId, videoId, setCloseMenu, setRefresh }: MoveVi
         <img
           className="move-video-button"
           data-context="remove"
-          onClick={async () => {
-            await updateCustomPlaylist('remove', playlistId, videoId);
+          // onClick={async () => {
+          //   await updateCustomPlaylist('remove', playlistId, videoId);
 
-            setRefresh(true);
-          }}
+          //   setRefresh(true);
+          // }}
           src={iconRemove}
           title="Remove from playlist"
         />

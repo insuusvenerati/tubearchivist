@@ -1,15 +1,14 @@
-import { Link, useSearchParams } from 'react-router-dom';
-import { VideoType, ViewLayoutType } from '../pages/Home';
-import iconPlay from '/img/icon-play.svg';
-import iconDotMenu from '/img/icon-dot-menu.svg';
-import defaultVideoThumb from '/img/default-video-thumb.jpg';
-import updateWatchedState from '../api/actions/updateWatchedState';
-import formatDate from '../functions/formatDates';
-import WatchedCheckBox from './WatchedCheckBox';
-import MoveVideoMenu from './MoveVideoMenu';
+import { Link, useLoaderData, useSearchParams } from '@remix-run/react';
 import { useState } from 'react';
-import getApiUrl from '../configuration/getApiUrl';
+import { loader } from '~/routes/_home._index';
 import { RoutesList } from '../configuration/routes/RouteList';
+import formatDate from '../functions/formatDates';
+import { VideoType, ViewLayoutType } from '../pages/Home';
+import MoveVideoMenu from './MoveVideoMenu';
+import WatchedCheckBox from './WatchedCheckBox';
+import defaultVideoThumb from '/img/default-video-thumb.jpg';
+import iconDotMenu from '/img/icon-dot-menu.svg';
+import iconPlay from '/img/icon-play.svg';
 
 type VideoListItemProps = {
   video: VideoType;
@@ -27,6 +26,7 @@ const VideoListItem = ({
   refreshVideoList,
 }: VideoListItemProps) => {
   const [, setSearchParams] = useSearchParams();
+  const { apiUrl } = useLoaderData<typeof loader>();
 
   const [showReorderMenu, setShowReorderMenu] = useState(false);
 
@@ -44,7 +44,7 @@ const VideoListItem = ({
         <div className={`video-thumb-wrap ${viewLayout}`}>
           <div className="video-thumb">
             <picture>
-              <img src={`${getApiUrl()}${video.vid_thumb_url}`} alt="video-thumb" />
+              <img src={`${apiUrl}${video.vid_thumb_url}`} alt="video-thumb" />
               <source srcSet={defaultVideoThumb} />
             </picture>
 
@@ -74,14 +74,14 @@ const VideoListItem = ({
         <div className="video-desc-player" id={`video-info-${video.youtube_id}`}>
           <WatchedCheckBox
             watched={video.player.watched}
-            onClick={async status => {
-              await updateWatchedState({
-                id: video.youtube_id,
-                is_watched: status,
-              });
+            // onClick={async status => {
+            //   await updateWatchedState({
+            //     id: video.youtube_id,
+            //     is_watched: status,
+            //   });
 
-              refreshVideoList(true);
-            }}
+            //   refreshVideoList(true);
+            // }}
           />
           <span>
             {formatDate(video.published)} | {video.player.duration_str}

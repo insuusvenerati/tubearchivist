@@ -7,7 +7,7 @@ import {
   useParams,
   useSearchParams,
 } from 'react-router-dom';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 import loadPlaylistById from '../api/loader/loadPlaylistById';
 import { OutletContextType } from './Base';
 import { ConfigType, VideoType, ViewLayoutType } from './Home';

@@ -1,7 +1,7 @@
 import { Outlet, useLoaderData, useLocation, useSearchParams } from 'react-router-dom';
 import Footer, { TaUpdateType } from '../components/Footer';
 import importColours from '../configuration/colours/getColours';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 import { useEffect, useState } from 'react';
 import Navigation from '../components/Navigation';
 import loadIsAdmin from '../functions/getIsAdmin';

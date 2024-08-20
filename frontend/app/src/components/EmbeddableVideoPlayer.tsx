@@ -1,19 +1,15 @@
-import { useEffect, useState } from 'react';
+import { useLoaderData } from '@remix-run/react';
+import { useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
+import { RoutesList } from '../configuration/routes/RouteList';
+import formatNumbers from '../functions/formatNumbers';
 import { SponsorBlockType, VideoResponseType } from '../pages/Video';
+import GoogleCast from './GoogleCast';
 import VideoPlayer, { VideoProgressType } from './VideoPlayer';
-import loadVideoById from '../api/loader/loadVideoById';
-import loadVideoProgressById from '../api/loader/loadVideoProgressById';
-import loadSponsorblockByVideoId from '../api/loader/loadSponsorblockByVideoId';
+import WatchedCheckBox from './WatchedCheckBox';
 import iconClose from '/img/icon-close.svg';
 import iconEye from '/img/icon-eye.svg';
 import iconThumb from '/img/icon-thumb.svg';
-import WatchedCheckBox from './WatchedCheckBox';
-import GoogleCast from './GoogleCast';
-import updateWatchedState from '../api/actions/updateWatchedState';
-import formatNumbers from '../functions/formatNumbers';
-import { Link, useSearchParams } from 'react-router-dom';
-import loadPlaylistById from '../api/loader/loadPlaylistById';
-import { RoutesList } from '../configuration/routes/RouteList';
 
 type Playlist = {
   id: string;
@@ -27,6 +23,9 @@ type EmbeddableVideoPlayerProps = {
 
 const EmbeddableVideoPlayer = ({ videoId }: EmbeddableVideoPlayerProps) => {
   const [, setSearchParams] = useSearchParams();
+  const data = useLoaderData();
+
+  console.log(data);
 
   const [refresh, setRefresh] = useState(false);
 
@@ -35,43 +34,43 @@ const EmbeddableVideoPlayer = ({ videoId }: EmbeddableVideoPlayerProps) => {
   const [playlists, setPlaylists] = useState<PlaylistList>();
   const [sponsorblockResponse, setSponsorblockResponse] = useState<SponsorBlockType>();
 
-  useEffect(() => {
-    (async () => {
-      const videoResponse = await loadVideoById(videoId);
-      const videoProgress = await loadVideoProgressById(videoId);
-      const sponsorblockReponse = await loadSponsorblockByVideoId(videoId);
+  // useEffect(() => {
+  //   (async () => {
+  //     const videoResponse = await loadVideoById(videoId);
+  //     // const videoProgress = await loadVideoProgressById(videoId);
+  //     const sponsorblockReponse = await loadSponsorblockByVideoId(videoId);
 
-      const playlistIds = videoResponse.data.playlist;
-      if (playlistIds !== undefined) {
-        const playlists = await Promise.all(
-          playlistIds.map(async (playlistid: string) => {
-            const playlistResponse = await loadPlaylistById(playlistid);
+  //     const playlistIds = videoResponse.data.playlist;
+  //     if (playlistIds !== undefined) {
+  //       const playlists = await Promise.all(
+  //         playlistIds.map(async (playlistid: string) => {
+  //           const playlistResponse = await loadPlaylistById(playlistid);
 
-            return playlistResponse.data;
-          }),
-        );
+  //           return playlistResponse.data;
+  //         }),
+  //       );
 
-        const playlistsFiltered = playlists
-          .filter(playlist => {
-            return playlist.playlist_subscribed;
-          })
-          .map(playlist => {
-            return {
-              id: playlist.playlist_id,
-              name: playlist.playlist_name,
-            };
-          });
+  //       const playlistsFiltered = playlists
+  //         .filter(playlist => {
+  //           return playlist.playlist_subscribed;
+  //         })
+  //         .map(playlist => {
+  //           return {
+  //             id: playlist.playlist_id,
+  //             name: playlist.playlist_name,
+  //           };
+  //         });
 
-        setPlaylists(playlistsFiltered);
-      }
+  //       setPlaylists(playlistsFiltered);
+  //     }
 
-      setVideoResponse(videoResponse);
-      setVideoProgress(videoProgress);
-      setSponsorblockResponse(sponsorblockReponse);
+  //     setVideoResponse(videoResponse);
+  //     setVideoProgress(videoProgress);
+  //     setSponsorblockResponse(sponsorblockReponse);
 
-      setRefresh(false);
-    })();
-  }, [videoId, refresh]);
+  //     setRefresh(false);
+  //   })();
+  // }, [videoId, refresh]);
 
   if (videoResponse === undefined) {
     return [];
@@ -114,10 +113,10 @@ const EmbeddableVideoPlayer = ({ videoId }: EmbeddableVideoPlayerProps) => {
             <WatchedCheckBox
               watched={watched}
               onClick={async status => {
-                await updateWatchedState({
-                  id: videoId,
-                  is_watched: status,
-                });
+                // await updateWatchedState({
+                //   id: videoId,
+                //   is_watched: status,
+                // });
 
                 setRefresh(true);
               }}

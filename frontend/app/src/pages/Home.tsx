@@ -8,7 +8,7 @@ import {
 } from '@remix-run/react';
 import { useEffect, useState } from 'react';
 import { Helmet } from 'react-helmet';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 import loadAuth from '../api/loader/loadAuth';
 import loadUserMeConfig from '../api/loader/loadUserConfig';
 import loadVideoListByFilter from '../api/loader/loadVideoListByPage';

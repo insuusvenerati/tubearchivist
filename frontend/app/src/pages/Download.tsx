@@ -6,7 +6,7 @@ import iconGridView from '/img/icon-gridview.svg';
 import iconListView from '/img/icon-listview.svg';
 import { Fragment, useEffect, useState } from 'react';
 import { useLoaderData, useOutletContext, useSearchParams } from 'react-router-dom';
-import updateUserConfig, { UserConfigType, UserMeType } from '../api/actions/updateUserConfig';
+import updateUserConfig, { UserConfigType, UserMeType } from '../../api/update-user-config.server';
 import { ConfigType, ViewLayoutType } from './Home';
 import loadDownloadQueue from '../api/loader/loadDownloadQueue';
 import { OutletContextType } from './Base';

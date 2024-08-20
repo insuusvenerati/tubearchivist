@@ -2,7 +2,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import Routes from '../configuration/routes/RouteList';
 import iconPlay from '/img/icon-play.svg';
 import Linkify from './Linkify';
-import getApiUrl from '../configuration/getApiUrl';
+import getApiUrl from '../configuration/getApiUrl.server';
 
 type SubtitleListType = {
   subtitle_index: number;

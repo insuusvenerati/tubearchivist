@@ -1,4 +1,4 @@
-import getApiUrl from '../configuration/getApiUrl';
+import getApiUrl from '../configuration/getApiUrl.server';
 import defaultChannelIcon from '/img/default-channel-icon.jpg';
 
 type ChannelIconProps = {

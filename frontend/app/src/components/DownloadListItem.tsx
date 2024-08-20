@@ -1,12 +1,10 @@
 import { Link } from 'react-router-dom';
 import Download from '../pages/Download';
-import Routes from '../configuration/routes/RouteList';
 import formatDate from '../functions/formatDates';
 import Button from './Button';
-import deleteDownloadById from '../api/actions/deleteDownloadById';
-import updateDownloadQueueStatusById from '../api/actions/updateDownloadQueueStatusById';
 import { useState } from 'react';
-import getApiUrl from '../configuration/getApiUrl';
+import getApiUrl from '../configuration/getApiUrl.server';
+import { RoutesList } from '../configuration/routes/RouteList';
 
 type DownloadListItemProps = {
   view: string;
@@ -34,7 +32,7 @@ const DownloadListItem = ({ view, download, showIgnored, setRefresh }: DownloadL
       <div className={`video-desc ${view}`}>
         <div>
           {download.channel_indexed && (
-            <Link to={Routes.Channel(download.channel_id)}>{download.channel_name}</Link>
+            <Link to={RoutesList.Channel(download.channel_id)}>{download.channel_name}</Link>
           )}
           {!download.channel_indexed && <span>{download.channel_name}</span>}
           <a href={`https://www.youtube.com/watch?v=${download.youtube_id}`} target="_blank">
@@ -51,17 +49,17 @@ const DownloadListItem = ({ view, download, showIgnored, setRefresh }: DownloadL
             <>
               <Button
                 label="Forget"
-                onClick={async () => {
-                  await deleteDownloadById(download.youtube_id);
-                  setRefresh(true);
-                }}
+                // onClick={async () => {
+                //   await deleteDownloadById(download.youtube_id);
+                //   setRefresh(true);
+                // }}
               />{' '}
               <Button
                 label="Add to queue"
-                onClick={async () => {
-                  await updateDownloadQueueStatusById(download.youtube_id, 'pending');
-                  setRefresh(true);
-                }}
+                // onClick={async () => {
+                //   await updateDownloadQueueStatusById(download.youtube_id, 'pending');
+                //   setRefresh(true);
+                // }}
               />
             </>
           )}
@@ -69,22 +67,22 @@ const DownloadListItem = ({ view, download, showIgnored, setRefresh }: DownloadL
             <>
               <Button
                 label="Ignore"
-                onClick={async () => {
-                  await updateDownloadQueueStatusById(download.youtube_id, 'ignore');
+                // onClick={async () => {
+                //   await updateDownloadQueueStatusById(download.youtube_id, 'ignore');
 
-                  setRefresh(true);
-                }}
+                //   setRefresh(true);
+                // }}
               />{' '}
               {!hideDownload && (
                 <Button
                   label="Download now"
-                  onClick={async () => {
-                    setHideDownload(true);
+                  // onClick={async () => {
+                  //   setHideDownload(true);
 
-                    await updateDownloadQueueStatusById(download.youtube_id, 'priority');
+                  //   await updateDownloadQueueStatusById(download.youtube_id, 'priority');
 
-                    setRefresh(true);
-                  }}
+                  //   setRefresh(true);
+                  // }}
                 />
               )}
             </>
@@ -93,10 +91,10 @@ const DownloadListItem = ({ view, download, showIgnored, setRefresh }: DownloadL
             <Button
               label="Delete"
               className="danger-button"
-              onClick={async () => {
-                await deleteDownloadById(download.youtube_id);
-                setRefresh(true);
-              }}
+              // onClick={async () => {
+              //   await deleteDownloadById(download.youtube_id);
+              //   setRefresh(true);
+              // }}
             />
           )}
         </div>

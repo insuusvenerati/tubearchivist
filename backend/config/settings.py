@@ -237,9 +237,7 @@ if bool(environ.get("TA_ENABLE_AUTH_PROXY")):
 
     MIDDLEWARE.append("user.src.remote_user_auth.HttpRemoteUserMiddleware")
 
-    AUTHENTICATION_BACKENDS = (
-        "django.contrib.auth.backends.RemoteUserBackend",
-    )
+    AUTHENTICATION_BACKENDS = ("django.contrib.auth.backends.RemoteUserBackend",)
 
 
 # Internationalization
@@ -282,9 +280,9 @@ else:
         r"moz-extension://*",
         r"chrome-extension://*",
     ]
-    CORS_ORIGIN_WHITELIST = ["http://localhost:3000", "http://localhost:8000"]
-    CSRF_TRUSTED_ORIGINS = ["http://localhost:3000", "http://localhost:8000"]
-    CORS_ALLOWED_ORIGINS = ["http://localhost:3000"]
+    CORS_ORIGIN_WHITELIST = ["http://localhost:5173", "http://localhost:8000"]
+    CSRF_TRUSTED_ORIGINS = ["http://localhost:5173", "http://localhost:8000"]
+    CORS_ALLOWED_ORIGINS = ["http://localhost:5173"]
 
 CORS_ALLOW_CREDENTIALS = True
 

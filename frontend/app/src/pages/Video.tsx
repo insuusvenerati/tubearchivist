@@ -39,7 +39,7 @@ import CommentBox, { CommentsType } from '../components/CommentBox';
 import { Helmet } from 'react-helmet';
 import Button from '../components/Button';
 import { OutletContextType } from './Base';
-import getApiUrl from '../configuration/getApiUrl';
+import getApiUrl from '../configuration/getApiUrl.server';
 import loadVideoNav, { VideoNavResponseType } from '../api/loader/loadVideoNav';
 
 const isInPlaylist = (videoId: string, playlist: PlaylistType) => {

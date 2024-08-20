@@ -6,7 +6,7 @@ import iconGridView from '/img/icon-gridview.svg';
 import iconListView from '/img/icon-listview.svg';
 
 import { OutletContextType } from './Base';
-import updateUserConfig, { UserConfigType, UserMeType } from '../api/actions/updateUserConfig';
+import updateUserConfig, { UserConfigType, UserMeType } from '../../api/update-user-config.server';
 import loadPlaylistList from '../api/loader/loadPlaylistList';
 import { ConfigType, ViewLayoutType } from './Home';
 import Pagination, { PaginationType } from '../components/Pagination';

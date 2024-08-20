@@ -5,7 +5,7 @@ import { PlaylistType } from '../pages/Playlist';
 import updatePlaylistSubscription from '../api/actions/updatePlaylistSubscription';
 import formatDate from '../functions/formatDates';
 import Button from './Button';
-import getApiUrl from '../configuration/getApiUrl';
+import getApiUrl from '../configuration/getApiUrl.server';
 
 type PlaylistListProps = {
   playlistList: PlaylistType[] | undefined;

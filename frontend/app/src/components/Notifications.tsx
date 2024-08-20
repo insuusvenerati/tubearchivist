@@ -1,7 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
-import loadNotifications, { NotificationPages } from '../api/loader/loadNotifications';
 import iconStop from '/img/icon-stop.svg';
-import stopTaskByName from '../api/actions/stopTaskByName';
+import { NotificationPages } from '~/types';
 
 type NotificationType = {
   title: string;
@@ -31,26 +30,26 @@ const Notifications = ({
 }: NotificationsProps) => {
   const [notificationResponse, setNotificationResponse] = useState<NotificationResponseType>([]);
 
-  useEffect(() => {
-    const intervalId = setInterval(async () => {
-      const notifications = await loadNotifications(pageName, includeReindex);
+  // useEffect(() => {
+  //   const intervalId = setInterval(async () => {
+  //     const notifications = await loadNotifications(pageName, includeReindex);
 
-      if (notifications.length === 0) {
-        setNotificationResponse(notifications);
-        clearInterval(intervalId);
-        setShouldRefresh?.(true);
-        return;
-      } else {
-        setShouldRefresh?.(false);
-      }
+  //     if (notifications.length === 0) {
+  //       setNotificationResponse(notifications);
+  //       clearInterval(intervalId);
+  //       setShouldRefresh?.(true);
+  //       return;
+  //     } else {
+  //       setShouldRefresh?.(false);
+  //     }
 
-      setNotificationResponse(notifications);
-    }, 500);
+  //     setNotificationResponse(notifications);
+  //   }, 500);
 
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [pageName, update, setShouldRefresh, includeReindex]);
+  //   return () => {
+  //     clearInterval(intervalId);
+  //   };
+  // }, [pageName, update, setShouldRefresh, includeReindex]);
 
   if (notificationResponse.length === 0) {
     return [];
@@ -82,9 +81,9 @@ const Notifications = ({
                 id="stop-icon"
                 title="Stop Task"
                 alt="stop icon"
-                onClick={async () => {
-                  await stopTaskByName(notification.id);
-                }}
+                // onClick={async () => {
+                //   await stopTaskByName(notification.id);
+                // }}
               />
             )}
           </div>

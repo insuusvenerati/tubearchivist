@@ -1,9 +1,14 @@
 import { AuthenticationType } from '~/routes/_home';
 import defaultHeaders from '../../configuration/defaultHeaders';
-import getApiUrl from '../../configuration/getApiUrl';
+import getApiUrl from '../../configuration/getApiUrl.server';
 import getFetchCredentials from '../../configuration/getFetchCredentials';
 
-const loadAuth = async user => {
+export type User = {
+  sessionid: string;
+  csrftoken: string;
+};
+
+const loadAuth = async (user: User) => {
   const apiUrl = getApiUrl();
 
   const response = await fetch(`${apiUrl}/api/ping/`, {
@@ -17,8 +22,6 @@ const loadAuth = async user => {
   });
 
   const data: AuthenticationType = await response.json();
-
-  console.log(data);
 
   return data;
 };

@@ -6,7 +6,7 @@ import iconAdd from '/img/icon-add.svg';
 import { useEffect, useState } from 'react';
 import Pagination, { PaginationType } from '../components/Pagination';
 import { ConfigType, ViewLayoutType } from './Home';
-import updateUserConfig, { UserConfigType, UserMeType } from '../api/actions/updateUserConfig';
+import updateUserConfig, { UserConfigType, UserMeType } from '../../api/update-user-config.server';
 import { OutletContextType } from './Base';
 import ChannelList from '../components/ChannelList';
 import ScrollToTopOnNavigate from '../components/ScrollToTop';

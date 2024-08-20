@@ -12,7 +12,7 @@ import loadPlaylistList from '../api/loader/loadPlaylistList';
 import { PlaylistsResponseType } from './Playlists';
 import iconGridView from '/img/icon-gridview.svg';
 import iconListView from '/img/icon-listview.svg';
-import { UserMeType } from '../api/actions/updateUserConfig';
+import { UserMeType } from '../../api/update-user-config.server';
 
 type ChannelPlaylistLoaderDataType = {
   userConfig: UserMeType;

@@ -1,130 +1,55 @@
 import { LoaderFunctionArgs } from '@remix-run/node';
 import { json, Link, useLoaderData, useOutletContext, useSearchParams } from '@remix-run/react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Helmet } from 'react-helmet';
+import { loadVideoListByFilter } from '~/api/video/index.server';
 import { authenticator } from '~/services/auth.server';
 import loadUserMeConfig from '~/src/api/loader/loadUserConfig';
-import loadVideoListByFilter from '~/src/api/loader/loadVideoListByPage';
 import EmbeddableVideoPlayer from '~/src/components/EmbeddableVideoPlayer';
 import Filterbar from '~/src/components/Filterbar';
-import Pagination, { PaginationType } from '~/src/components/Pagination';
+import Pagination from '~/src/components/Pagination';
 import ScrollToTopOnNavigate from '~/src/components/ScrollToTop';
 import VideoList from '~/src/components/VideoList';
 import { ViewStyleNames, ViewStyles } from '~/src/configuration/constants/ViewStyle';
 import { RoutesList } from '~/src/configuration/routes/RouteList';
 import { OutletContextType } from '~/src/pages/Base';
-import { ChannelType } from '~/src/pages/Channels';
-
-export type PlayerType = {
-  watched: boolean;
-  duration: number;
-  duration_str: string;
-  progress: number;
-};
-
-export type StatsType = {
-  view_count: number;
-  like_count: number;
-  dislike_count: number;
-  average_rating: number;
-};
-
-export type StreamType = {
-  type: string;
-  index: number;
-  codec: string;
-  width?: number;
-  height?: number;
-  bitrate: number;
-};
-
-export type Subtitles = {
-  ext: string;
-  url: string;
-  name: string;
-  lang: string;
-  source: string;
-  media_url: string;
-};
-
-export type VideoType = {
-  active: boolean;
-  category: string[];
-  channel: ChannelType;
-  date_downloaded: number;
-  description: string;
-  comment_count?: number;
-  media_size: number;
-  media_url: string;
-  player: PlayerType;
-  published: string;
-  stats: StatsType;
-  streams: StreamType[];
-  subtitles: Subtitles[];
-  tags: string[];
-  title: string;
-  vid_last_refresh: string;
-  vid_thumb_base64: boolean;
-  vid_thumb_url: string;
-  vid_type: string;
-  youtube_id: string;
-};
-
-export type DownloadsType = {
-  limit_speed: boolean;
-  sleep_interval: number;
-  autodelete_days: boolean;
-  format: boolean;
-  format_sort: boolean;
-  add_metadata: boolean;
-  add_thumbnail: boolean;
-  subtitle: boolean;
-  subtitle_source: boolean;
-  subtitle_index: boolean;
-  comment_max: boolean;
-  comment_sort: string;
-  cookie_import: boolean;
-  throttledratelimit: boolean;
-  extractor_lang: boolean;
-  integrate_ryd: boolean;
-  integrate_sponsorblock: boolean;
-};
-
-export type ConfigType = {
-  enable_cast: boolean;
-  downloads: DownloadsType;
-};
-
-export type VideoResponseType = {
-  data?: VideoType[];
-  config?: ConfigType;
-  paginate?: PaginationType;
-};
-
-type ContinueVidsType = {
-  data?: VideoType[];
-  config?: ConfigType;
-  paginate?: PaginationType;
-};
-
-export type SortByType = 'published' | 'downloaded' | 'views' | 'likes' | 'duration' | 'filesize';
-export type SortOrderType = 'asc' | 'desc';
-export type ViewLayoutType = 'grid' | 'list';
+import { ContinueVidsType, SortByType, SortOrderType, ViewLayoutType } from '~/types';
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
+  console.log(request.headers);
   const user = await authenticator.isAuthenticated(request, { failureRedirect: '/login' });
-
-  console.log('------------ after reload');
+  const url = new URL(request.url);
+  const page = url.searchParams.get('page');
 
   const userConfig = await loadUserMeConfig(user);
+  const videos = await loadVideoListByFilter(
+    user,
+    {
+      page: page ? Number(page) : 1,
+      watch: userConfig.config.hide_watched ? 'unwatched' : undefined,
+      sort: userConfig.config.sort_by,
+      order: userConfig.config.sort_order,
+    },
+    request,
+  );
 
-  return json({ userConfig });
+  const continueVideoResponse: ContinueVidsType = await loadVideoListByFilter(
+    user,
+    {
+      watch: 'continue',
+    },
+    request,
+  );
+
+  return json({ userConfig, videos, continueVideoResponse });
 };
 
 const Home = () => {
-  // const { userConfig } = useLoaderData() as HomeLoaderDataType;
   const data = useLoaderData<typeof loader>();
-  const outletContext = useOutletContext() as OutletContextType;
+  const outletContext = useOutletContext<OutletContextType>();
+
+  console.log(data);
+
   const [searchParams] = useSearchParams();
   const videoId = searchParams.get('videoId');
 
@@ -138,49 +63,49 @@ const Home = () => {
   const [showHidden, setShowHidden] = useState(false);
   const [refreshVideoList, setRefreshVideoList] = useState(false);
 
-  const [videoResponse, setVideoReponse] = useState<VideoResponseType>();
-  const [continueVideoResponse, setContinueVideoResponse] = useState<ContinueVidsType>();
+  // const [videoResponse, setVideoReponse] = useState<VideoResponseType>();
+  // const [continueVideoResponse, setContinueVideoResponse] = useState<ContinueVidsType>();
 
-  const videoList = videoResponse?.data;
-  const pagination = videoResponse?.paginate;
-  const continueVideos = continueVideoResponse?.data;
+  const videoList = data.videos;
+  const pagination = data.videos.paginate;
+  const continueVideos = data.continueVideoResponse.data;
 
-  const hasVideos = videoResponse?.data?.length !== 0;
+  const hasVideos = data.videos.data?.length !== 0;
   const showEmbeddedVideo = videoId !== null;
 
   const isGridView = view === ViewStyles.grid;
   const gridView = isGridView ? `boxed-${gridItems}` : '';
   const gridViewGrid = isGridView ? `grid-${gridItems}` : '';
 
-  useEffect(() => {
-    (async () => {
-      if (
-        refreshVideoList ||
-        pagination?.current_page === undefined ||
-        outletContext.currentPage !== pagination?.current_page
-      ) {
-        const videos = await loadVideoListByFilter({
-          page: outletContext.currentPage,
-          watch: hideWatched ? 'unwatched' : undefined,
-          sort: sortBy,
-          order: sortOrder,
-        });
+  // useEffect(() => {
+  //   (async () => {
+  //     if (
+  //       refreshVideoList ||
+  //       pagination?.current_page === undefined ||
+  //       outletContext.currentPage !== pagination?.current_page
+  //     ) {
+  //       const videos = await loadVideoListByFilter({
+  //         page: outletContext.currentPage,
+  //         watch: hideWatched ? 'unwatched' : undefined,
+  //         sort: sortBy,
+  //         order: sortOrder,
+  //       });
 
-        try {
-          const continueVideoResponse = await loadVideoListByFilter({ watch: 'continue' });
-          setContinueVideoResponse(continueVideoResponse);
-        } catch (error) {
-          console.log('Server error on continue vids?');
-        }
+  //       try {
+  //         const continueVideoResponse = await loadVideoListByFilter({ watch: 'continue' });
+  //         setContinueVideoResponse(continueVideoResponse);
+  //       } catch (error) {
+  //         console.log('Server error on continue vids?');
+  //       }
 
-        setVideoReponse(videos);
+  //       setVideoReponse(videos);
 
-        setRefreshVideoList(false);
-      }
-    })();
-    // Do not add sort, order, hideWatched this will not work as expected!
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshVideoList, outletContext?.currentPage, pagination?.current_page]);
+  //       setRefreshVideoList(false);
+  //     }
+  //   })();
+  //   // Do not add sort, order, hideWatched this will not work as expected!
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [refreshVideoList, outletContext?.currentPage, pagination?.current_page]);
 
   return (
     <>
@@ -217,7 +142,6 @@ const Home = () => {
           gridItems={gridItems}
           sortBy={sortBy}
           sortOrder={sortOrder}
-          userMeConfig={userMeConfig}
           setShowHidden={setShowHidden}
           setHideWatched={setHideWatched}
           setView={setView}
