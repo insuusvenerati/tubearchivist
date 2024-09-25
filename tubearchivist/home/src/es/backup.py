@@ -15,7 +15,9 @@ from home.src.es.connect import ElasticWrap, IndexPaginate
 from home.src.ta.config import AppConfig
 from home.src.ta.helper import get_mapping, ignore_filelist
 from home.src.ta.settings import EnvironmentSettings
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ElasticBackup:
     """dump index to nd-json files for later bulk import"""
@@ -33,7 +35,7 @@ class ElasticBackup:
 
     def backup_all_indexes(self):
         """backup all indexes, add reason to init"""
-        print("backup all indexes")
+        logger.info("backup all indexes")
         if not self.reason:
             raise ValueError("missing backup reason in ElasticBackup")
 
@@ -41,9 +43,9 @@ class ElasticBackup:
             self.task.send_progress(["Scanning your index."])
         for index in self.index_config:
             index_name = index["index_name"]
-            print(f"backup: export in progress for {index_name}")
+            logger.info(f"backup: export in progress for {index_name}")
             if not self.index_exists(index_name):
-                print(f"skip backup for not yet existing index {index_name}")
+                logger.info(f"skip backup for not yet existing index {index_name}")
                 continue
 
             self.backup_index(index_name)
@@ -178,7 +180,7 @@ class ElasticBackup:
                 os.remove(file_name)
                 continue
 
-            print("restoring: " + json_f)
+            logger.info("restoring: " + json_f)
             self.post_bulk_restore(file_name)
             os.remove(file_name)
 
@@ -211,7 +213,7 @@ class ElasticBackup:
         auto = [i for i in all_backup_files if i["reason"] == "auto"]
 
         if len(auto) <= rotate:
-            print("no backup files to rotate")
+            logger.info("no backup files to rotate")
             return
 
         all_to_delete = auto[rotate:]
@@ -222,10 +224,10 @@ class ElasticBackup:
         """delete backup file"""
         file_path = os.path.join(self.BACKUP_DIR, filename)
         if not os.path.exists(file_path):
-            print(f"backup file not found: {filename}")
+            logger.info(f"backup file not found: {filename}")
             return False
 
-        print(f"remove old backup file: {file_path}")
+        logger.info(f"remove old backup file: {file_path}")
         os.remove(file_path)
 
         return file_path

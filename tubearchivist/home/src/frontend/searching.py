@@ -8,7 +8,9 @@ Functionality:
 
 from api.src.search_processor import SearchProcess
 from home.src.es.connect import ElasticWrap
+import logging
 
+logger = logging.getLogger(__name__)
 
 class SearchForm:
     """build query from search form data"""
@@ -60,7 +62,7 @@ class SearchParser:
 
     def run(self):
         """collection, return path and query dict for es"""
-        print(f"query words: {self.query_words}")
+        logger.info(f"query words: {self.query_words}")
         query_type = self._find_map()
         self._run_words()
         self._delete_unset()
@@ -83,7 +85,7 @@ class SearchParser:
                 return index_match
 
         self.query_map.update(key_word_map.get("simple"))
-        print(f"query_map: {self.query_map}")
+        logger.info(f"query_map: {self.query_map}")
 
         return "simple"
 
@@ -156,8 +158,8 @@ class QueryBuilder:
         """build query"""
         path = self._build_path()
         query = self.build_query()
-        print(f"es path: {path}")
-        print(f"query: {query}")
+        logger.info(f"es path: {path}")
+        logger.info(f"query: {query}")
 
         return path, query
 

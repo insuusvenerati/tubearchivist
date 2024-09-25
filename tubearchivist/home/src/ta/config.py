@@ -7,11 +7,13 @@ Functionality:
 import json
 from random import randint
 from time import sleep
+import logging
 
 import requests
 from django.conf import settings
 from home.src.ta.ta_redis import RedisArchivist
 
+logger = logging.getLogger(__name__)
 
 class AppConfig:
     """handle application variables"""
@@ -46,7 +48,7 @@ class AppConfig:
                 return config
 
             except Exception:  # pylint: disable=broad-except
-                print(f"... Redis connection failed, retry [{i}/10]")
+                logger.info(f"... Redis connection failed, retry [{i}/10]")
                 sleep(3)
 
         raise ConnectionError("failed to connect to redis")
@@ -118,7 +120,7 @@ class ReleaseVersion:
 
     def check(self) -> None:
         """check version"""
-        print(f"[{self.local_version}]: look for updates")
+        logger.info(f"[{self.local_version}]: look for updates")
         self.get_remote_version()
         new_version = self._has_update()
         if new_version:
@@ -128,7 +130,7 @@ class ReleaseVersion:
                 "is_breaking": self.is_breaking,
             }
             RedisArchivist().set_message(self.NEW_KEY, message)
-            print(f"[{self.local_version}]: found new version {new_version}")
+            logger.info(f"[{self.local_version}]: found new version {new_version}")
 
     def get_local_version(self) -> str:
         """read version from local"""

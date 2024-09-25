@@ -4,6 +4,7 @@ Functionality:
 """
 
 import os
+import logging
 
 from home.src.es.connect import ElasticWrap, IndexPaginate
 from home.src.index.comments import CommentList
@@ -11,6 +12,7 @@ from home.src.index.video import YoutubeVideo, index_new_video
 from home.src.ta.helper import ignore_filelist
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 class Scanner:
     """scan index and filesystem"""
@@ -61,7 +63,7 @@ class Scanner:
     def delete(self) -> None:
         """delete videos from index"""
         if not self.to_delete:
-            print("nothing to delete")
+            logger.info("nothing to delete")
             return
 
         if self.task:
@@ -75,7 +77,7 @@ class Scanner:
     def index(self) -> None:
         """index new"""
         if not self.to_index:
-            print("nothing to index")
+            logger.info("nothing to index")
             return
 
         total = len(self.to_index)
@@ -119,7 +121,7 @@ class Scanner:
         response, _ = ElasticWrap("ta_video/_update_by_query").post(data=data)
         updated = response.get("updates")
         if updated:
-            print(f"updated {updated} bad media_url")
+            logger.info(f"updated {updated} bad media_url")
             if self.task:
                 self.task.send_progress(
                     [f"Updated {updated} wrong media urls."]

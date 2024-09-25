@@ -8,6 +8,7 @@ functionality:
 
 import os
 import shutil
+import logging
 from datetime import datetime
 
 from home.src.download.queue import PendingList
@@ -24,6 +25,7 @@ from home.src.ta.helper import get_channel_overwrites, ignore_filelist
 from home.src.ta.settings import EnvironmentSettings
 from home.src.ta.ta_redis import RedisQueue
 
+logger = logging.getLogger(__name__)
 
 class DownloaderBase:
     """base class for shared config"""
@@ -62,7 +64,7 @@ class VideoDownloader(DownloaderBase):
 
             youtube_id = video_data["youtube_id"]
             channel_id = video_data["channel_id"]
-            print(f"{youtube_id}: Downloading video")
+            logger.info(f"{youtube_id}: Downloading video")
             self._notify(video_data, "Validate download format")
 
             success = self._dl_single_vid(youtube_id, channel_id)
@@ -282,7 +284,7 @@ class VideoDownloader(DownloaderBase):
         response, _ = ElasticWrap(path).post(data=data)
         updated = response.get("updated")
         if updated:
-            print(f"[download] reset auto start on {updated} videos.")
+            logger.info(f"[download] reset auto start on {updated} videos.")
 
 
 class DownloadPostProcess(DownloaderBase):
@@ -302,7 +304,7 @@ class DownloadPostProcess(DownloaderBase):
         if not autodelete_days:
             return
 
-        print(f"auto delete older than {autodelete_days} days")
+        logger.info(f"auto delete older than {autodelete_days} days")
         now_lte = str(self.now - autodelete_days * 24 * 60 * 60)
         data = {
             "query": {"range": {"player.watched_date": {"lte": now_lte}}},
@@ -315,7 +317,7 @@ class DownloadPostProcess(DownloaderBase):
         for channel_id, value in self.channel_overwrites.items():
             if "autodelete_days" in value:
                 autodelete_days = value.get("autodelete_days")
-                print(f"{channel_id}: delete older than {autodelete_days}d")
+                logger.info(f"{channel_id}: delete older than {autodelete_days}d")
                 now_lte = str(self.now - autodelete_days * 24 * 60 * 60)
                 must_list = [
                     {"range": {"player.watched_date": {"lte": now_lte}}},
@@ -336,10 +338,10 @@ class DownloadPostProcess(DownloaderBase):
 
         for video in to_delete:
             youtube_id = video["youtube_id"]
-            print(f"{youtube_id}: auto delete video")
+            logger.info(f"{youtube_id}: auto delete video")
             YoutubeVideo(youtube_id).delete_media_file()
 
-        print("add deleted to ignore list")
+        logger.info("add deleted to ignore list")
         vids = [{"type": "video", "url": i["youtube_id"]} for i in to_delete]
         pending = PendingList(youtube_ids=vids)
         pending.parse_url_list()

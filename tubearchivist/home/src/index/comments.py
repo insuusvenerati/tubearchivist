@@ -6,12 +6,14 @@ Functionality:
 """
 
 from datetime import datetime
+import logging
 
 from home.src.download.yt_dlp_base import YtWrap
 from home.src.es.connect import ElasticWrap
 from home.src.ta.config import AppConfig
 from home.src.ta.ta_redis import RedisQueue
 
+logger = logging.getLogger(__name__)
 
 class Comments:
     """interact with comments per video"""
@@ -26,7 +28,7 @@ class Comments:
 
     def build_json(self):
         """build json document for es"""
-        print(f"{self.youtube_id}: get comments")
+        logger.info(f"{self.youtube_id}: get comments")
         self.check_config()
         if not self.is_activated:
             return
@@ -105,7 +107,7 @@ class Comments:
         """parse metadata from comment for indexing"""
         if not comment.get("text"):
             # comment text can be empty
-            print(f"{self.youtube_id}: Failed to extract text, {comment}")
+            logger.info(f"{self.youtube_id}: Failed to extract text, {comment}")
             return False
 
         time_text_datetime = datetime.utcfromtimestamp(comment["timestamp"])
@@ -143,7 +145,7 @@ class Comments:
         if not self.is_activated:
             return
 
-        print(f"{self.youtube_id}: upload comments")
+        logger.info(f"{self.youtube_id}: upload comments")
         _, _ = ElasticWrap(self.es_path).put(self.json_data)
 
         vid_path = f"ta_video/_update/{self.youtube_id}"
@@ -152,14 +154,14 @@ class Comments:
 
     def delete_comments(self):
         """delete comments from es"""
-        print(f"{self.youtube_id}: delete comments")
+        logger.info(f"{self.youtube_id}: delete comments")
         _, _ = ElasticWrap(self.es_path).delete(refresh=True)
 
     def get_es_comments(self):
         """get comments from ES"""
         response, statuscode = ElasticWrap(self.es_path).get()
         if statuscode == 404:
-            print(f"comments: not found {self.youtube_id}")
+            logger.info(f"comments: not found {self.youtube_id}")
             return False
 
         return response.get("_source")

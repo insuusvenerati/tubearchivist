@@ -5,6 +5,7 @@ functionality:
 """
 
 import os
+import logging
 from datetime import datetime
 from http import cookiejar
 from io import StringIO
@@ -13,6 +14,7 @@ import yt_dlp
 from home.src.ta.settings import EnvironmentSettings
 from home.src.ta.ta_redis import RedisArchivist
 
+logger = logging.getLogger(__name__)
 
 class YtWrap:
     """wrap calls to yt"""
@@ -50,7 +52,7 @@ class YtWrap:
             try:
                 ydl.download([url])
             except yt_dlp.utils.DownloadError as err:
-                print(f"{url}: failed to download with message {err}")
+                logger.info(f"{url}: failed to download with message {err}")
                 if "Temporary failure in name resolution" in str(err):
                     raise ConnectionError("lost the internet, abort!") from err
 
@@ -63,16 +65,16 @@ class YtWrap:
         try:
             response = yt_dlp.YoutubeDL(self.obs).extract_info(url)
         except cookiejar.LoadError as err:
-            print(f"cookie file is invalid: {err}")
+            logger.info(f"cookie file is invalid: {err}")
             return False
         except yt_dlp.utils.ExtractorError as err:
-            print(f"{url}: failed to extract with message: {err}, continue...")
+            logger.info(f"{url}: failed to extract with message: {err}, continue...")
             return False
         except yt_dlp.utils.DownloadError as err:
             if "This channel does not have a" in str(err):
                 return False
 
-            print(f"{url}: failed to get info from youtube with message {err}")
+            logger.info(f"{url}: failed to get info from youtube with message {err}")
             if "Temporary failure in name resolution" in str(err):
                 raise ConnectionError("lost the internet, abort!") from err
 
@@ -105,13 +107,13 @@ class CookieHandler:
             with open(import_path, encoding="utf-8") as cookie_file:
                 cookie = cookie_file.read()
         except FileNotFoundError as err:
-            print(f"cookie: {import_path} file not found")
+            logger.info(f"cookie: {import_path} file not found")
             raise err
 
         self.set_cookie(cookie)
 
         os.remove(import_path)
-        print("cookie: import successful")
+        logger.info("cookie: import successful")
 
     def set_cookie(self, cookie):
         """set cookie str and activate in config"""
@@ -119,7 +121,7 @@ class CookieHandler:
         path = ".downloads.cookie_import"
         RedisArchivist().set_message("config", True, path=path, save=True)
         self.config["downloads"]["cookie_import"] = True
-        print("cookie: activated and stored in Redis")
+        logger.info("cookie: activated and stored in Redis")
 
     @staticmethod
     def revoke():
@@ -129,11 +131,11 @@ class CookieHandler:
         RedisArchivist().set_message(
             "config", False, path=".downloads.cookie_import"
         )
-        print("cookie: revoked")
+        logger.info("cookie: revoked")
 
     def validate(self):
         """validate cookie using the liked videos playlist"""
-        print("validating cookie")
+        logger.info("validating cookie")
         obs_request = {
             "skip_download": True,
             "extract_flat": True,
@@ -157,7 +159,7 @@ class CookieHandler:
             RedisArchivist().set_message(
                 "message:download", mess_dict, expire=4
             )
-            print("cookie validation failed, exiting...")
+            logger.info("cookie validation failed, exiting...")
 
         return response
 

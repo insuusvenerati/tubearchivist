@@ -5,6 +5,7 @@ Functionality:
 """
 
 import json
+import logging
 from datetime import datetime
 
 from home.src.download.subscriptions import ChannelSubscription
@@ -16,6 +17,7 @@ from home.src.index.video_constants import VideoTypeEnum
 from home.src.ta.config import AppConfig
 from home.src.ta.helper import get_duration_str, is_shorts
 
+logger = logging.getLogger(__name__)
 
 class PendingIndex:
     """base class holding all export methods"""
@@ -210,7 +212,7 @@ class PendingList(PendingIndex):
         if url not in self.missing_videos and url not in self.to_skip:
             self.missing_videos.append((url, vid_type))
         else:
-            print(f"{url}: skipped adding already indexed video to download.")
+            logger.info(f"{url}: skipped adding already indexed video to download.")
 
     def _parse_channel(self, url, vid_type):
         """add all videos of channel to list"""
@@ -226,7 +228,7 @@ class PendingList(PendingIndex):
         is_active = playlist.update_playlist()
         if not is_active:
             message = f"{playlist.youtube_id}: failed to extract metadata"
-            print(message)
+            logger.info(message)
             raise ValueError(message)
 
         entries = playlist.json_data["playlist_entries"]
@@ -249,7 +251,7 @@ class PendingList(PendingIndex):
             if self.task and self.task.is_stopped():
                 break
 
-            print(f"{youtube_id}: [{idx + 1}/{total}]: add to queue")
+            logger.info(f"{youtube_id}: [{idx + 1}/{total}]: add to queue")
             self._notify_add(idx, total)
             video_details = self.get_youtube_details(youtube_id, vid_type)
             if not video_details:
@@ -309,11 +311,11 @@ class PendingList(PendingIndex):
 
         if vid.get("id") != youtube_id:
             # skip premium videos with different id
-            print(f"{youtube_id}: skipping premium video, id not matching")
+            logger.info(f"{youtube_id}: skipping premium video, id not matching")
             return False
         # stop if video is streaming live now
         if vid["live_status"] in ["is_upcoming", "is_live"]:
-            print(f"{youtube_id}: skip is_upcoming or is_live")
+            logger.info(f"{youtube_id}: skip is_upcoming or is_live")
             return False
 
         if vid["live_status"] == "was_live":
@@ -325,7 +327,7 @@ class PendingList(PendingIndex):
                 vid_type = VideoTypeEnum.VIDEOS
 
         if not vid.get("channel"):
-            print(f"{youtube_id}: skip video not part of channel")
+            logger.info(f"{youtube_id}: skip video not part of channel")
             return False
 
         return self._parse_youtube_details(vid, vid_type)

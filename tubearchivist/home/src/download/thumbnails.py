@@ -6,6 +6,7 @@ functionality:
 
 import base64
 import os
+import logging
 from io import BytesIO
 from time import sleep
 
@@ -17,7 +18,7 @@ from mutagen.mp4 import MP4, MP4Cover
 from PIL import Image, ImageFile, ImageFilter, UnidentifiedImageError
 
 ImageFile.LOAD_TRUNCATED_IMAGES = True
-
+logger = logging.getLogger(__name__)
 
 class ThumbManagerBase:
     """base class for thumbnail management"""
@@ -48,7 +49,7 @@ class ThumbManagerBase:
                         return self.get_fallback()
 
                     except (UnidentifiedImageError, OSError):
-                        print(f"failed to open thumbnail: {url}")
+                        logger.info(f"failed to open thumbnail: {url}")
                         return self.get_fallback()
 
                 if response.status_code == 404:
@@ -58,14 +59,14 @@ class ThumbManagerBase:
                 requests.exceptions.RequestException,
                 requests.exceptions.ReadTimeout,
             ):
-                print(f"{self.item_id}: retry thumbnail download {url}")
+                logger.info(f"{self.item_id}: retry thumbnail download {url}")
                 sleep((i + 1) ** i)
 
         return self.get_fallback()
 
     def get_fallback(self):
         """get fallback thumbnail if not available"""
-        print(f"{self.item_id}: failed to extract thumbnail, use fallback")
+        logger.info(f"{self.item_id}: failed to extract thumbnail, use fallback")
         if self.fallback:
             img_raw = Image.open(self.fallback)
             return img_raw
@@ -102,7 +103,7 @@ class ThumbManager(ThumbManagerBase):
 
     def download(self, url):
         """download thumbnail"""
-        print(f"{self.item_id}: download {self.item_type} thumbnail")
+        logger.info(f"{self.item_id}: download {self.item_type} thumbnail")
         if self.item_type == "video":
             self.download_video_thumb(url)
         elif self.item_type == "channel":
@@ -112,7 +113,7 @@ class ThumbManager(ThumbManagerBase):
 
     def delete(self):
         """delete thumbnail file"""
-        print(f"{self.item_id}: delete {self.item_type} thumbnail")
+        logger.info(f"{self.item_id}: delete {self.item_type} thumbnail")
         if self.item_type == "video":
             self.delete_video_thumb()
         elif self.item_type == "channel":
@@ -264,7 +265,7 @@ class ValidatorCallback:
 
     def run(self):
         """run the task for page"""
-        print(f"{self.index_name}: validate artwork")
+        logger.info(f"{self.index_name}: validate artwork")
         if self.index_name == "ta_video":
             self._validate_videos()
         elif self.index_name == "ta_channel":
@@ -371,7 +372,7 @@ class ThumbValidator:
                     f"[thumbs][video][{video_folder}] "
                     + f"delete {len(to_delete)} unused thumbnails"
                 )
-                print(message)
+                logger.info(message)
                 if self.task:
                     self.task.send_progress([message])
 
@@ -407,7 +408,7 @@ class ThumbValidator:
                 "[thumbs][channel] "
                 + f"delete {len(to_delete)} unused channel art"
             )
-            print(message)
+            logger.info(message)
             if self.task:
                 self.task.send_progress([message])
 
@@ -426,7 +427,7 @@ class ThumbValidator:
                 "[thumbs][playlist] "
                 + f"delete {len(to_delete)} unused playlist art"
             )
-            print(message)
+            logger.info(message)
             if self.task:
                 self.task.send_progress([message])
 

@@ -7,6 +7,7 @@ functionality:
 
 import json
 import os
+import logging
 from datetime import datetime
 
 import requests
@@ -14,6 +15,7 @@ from home.src.es.connect import ElasticWrap
 from home.src.ta.helper import requests_headers
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 class YoutubeSubtitle:
     """handle video subtitle functionality"""
@@ -51,7 +53,7 @@ class YoutubeSubtitle:
 
     def _get_auto_caption(self, lang):
         """get auto_caption subtitles"""
-        print(f"{self.video.youtube_id}-{lang}: get auto generated subtitles")
+        logger.info(f"{self.video.youtube_id}-{lang}: get auto generated subtitles")
         all_subtitles = self.video.youtube_meta.get("automatic_captions")
 
         if not all_subtitles:
@@ -65,7 +67,7 @@ class YoutubeSubtitle:
 
         subtitle_json3 = [i for i in all_formats if i["ext"] == "json3"]
         if not subtitle_json3:
-            print(f"{self.video.youtube_id}-{lang}: json3 not processed")
+            logger.info(f"{self.video.youtube_id}-{lang}: json3 not processed")
             return False
 
         subtitle = subtitle_json3[0]
@@ -93,7 +95,7 @@ class YoutubeSubtitle:
 
     def _get_user_subtitles(self, lang):
         """get subtitles uploaded from channel owner"""
-        print(f"{self.video.youtube_id}-{lang}: get user uploaded subtitles")
+        logger.info(f"{self.video.youtube_id}-{lang}: get user uploaded subtitles")
         all_subtitles = self._normalize_lang()
         if not all_subtitles:
             return False
@@ -124,12 +126,12 @@ class YoutubeSubtitle:
                 subtitle["url"], headers=requests_headers(), timeout=30
             )
             if not response.ok:
-                print(f"{self.video.youtube_id}: failed to download subtitle")
-                print(response.text)
+                logger.info(f"{self.video.youtube_id}: failed to download subtitle")
+                logger.info(response.text)
                 continue
 
             if not response.text:
-                print(f"{self.video.youtube_id}: skip empty subtitle")
+                logger.info(f"{self.video.youtube_id}: skip empty subtitle")
                 continue
 
             parser = SubtitleParser(response.text, lang, source)
@@ -182,7 +184,7 @@ class YoutubeSubtitle:
             try:
                 os.remove(file_path)
             except FileNotFoundError:
-                print(f"{youtube_id}: {file_path} failed to delete")
+                logger.info(f"{youtube_id}: {file_path} failed to delete")
         # delete from index
         path = "ta_subtitle/_delete_by_query?refresh=true"
         data = {"query": {"term": {"youtube_id": {"value": youtube_id}}}}
@@ -212,7 +214,7 @@ class SubtitleParser:
         for idx, event in enumerate(all_events):
             if "dDurationMs" not in event or "segs" not in event:
                 # some events won't have a duration or segs
-                print(f"skipping subtitle event without content: {event}")
+                logger.info(f"skipping subtitle event without content: {event}")
                 continue
 
             cue = {
@@ -239,7 +241,7 @@ class SubtitleParser:
                 last = flatten[-1]
                 if "dDurationMs" not in last or "segs" not in last:
                     # some events won't have a duration or segs
-                    print(f"skipping subtitle event without content: {event}")
+                    logger.info(f"skipping subtitle event without content: {event}")
                     continue
 
                 last_end = last["tStartMs"] + last["dDurationMs"]

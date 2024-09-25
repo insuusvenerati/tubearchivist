@@ -5,6 +5,7 @@ functionality:
 """
 
 import json
+import logging
 from datetime import datetime
 
 from home.src.download.thumbnails import ThumbManager
@@ -13,6 +14,7 @@ from home.src.index import channel
 from home.src.index.generic import YouTubeItem
 from home.src.index.video import YoutubeVideo
 
+logger = logging.getLogger(__name__)
 
 class YoutubePlaylist(YouTubeItem):
     """represents a single youtube playlist"""
@@ -56,7 +58,7 @@ class YoutubePlaylist(YouTubeItem):
         try:
             playlist_thumbnail = self.youtube_meta["thumbnails"][-1]["url"]
         except IndexError:
-            print(f"{self.youtube_id}: thumbnail extraction failed")
+            logger.info(f"{self.youtube_id}: thumbnail extraction failed")
             playlist_thumbnail = False
 
         self.json_data = {
@@ -166,7 +168,7 @@ class YoutubePlaylist(YouTubeItem):
             path = "ta_video/_update_by_query"
             _, status_code = ElasticWrap(path).post(query)
             if status_code == 200:
-                print(f"{self.youtube_id}: removed {video_id} from playlist")
+                logger.info(f"{self.youtube_id}: removed {video_id} from playlist")
 
     def update_playlist(self, skip_on_empty=False):
         """update metadata for playlist with data from YouTube"""
@@ -270,7 +272,7 @@ class YoutubePlaylist(YouTubeItem):
 
     def delete_videos_playlist(self):
         """delete playlist with all videos"""
-        print(f"{self.youtube_id}: delete playlist")
+        logger.info(f"{self.youtube_id}: delete playlist")
         self.get_from_es()
         all_youtube_id = [
             i["youtube_id"]

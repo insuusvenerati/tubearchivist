@@ -7,11 +7,14 @@ python manage.py ta_migpath
 import json
 import os
 import shutil
+import logging
 
 from django.core.management.base import BaseCommand
 from home.src.es.connect import ElasticWrap, IndexPaginate
 from home.src.ta.helper import ignore_filelist
 from home.src.ta.settings import EnvironmentSettings
+
+logger = logging.getLogger(__name__)
 
 TOPIC = """
 
@@ -118,14 +121,14 @@ class FolderMigration:
             self.bulk_list.append(json.dumps(action))
             self.bulk_list.append(json.dumps(source))
             if idx % 1000 == 0:
-                print(f"processing migration [{idx}/{total}]")
+                logger.info(f"processing migration [{idx}/{total}]")
                 self.send_bulk()
 
     def _move_video_file(self, video):
         """move video file to new location"""
         old_path = os.path.join(self.videos, video["media_url"])
         if not os.path.exists(old_path):
-            print(f"did not find expected video at {old_path}")
+            logger.info(f"did not find expected video at {old_path}")
             return False
 
         new_media_url = os.path.join(
@@ -145,7 +148,7 @@ class FolderMigration:
         for subtitle in all_subtitles:
             old_path = os.path.join(self.videos, subtitle["media_url"])
             if not os.path.exists(old_path):
-                print(f"did not find expected subtitle at {old_path}")
+                logger.info(f"did not find expected subtitle at {old_path}")
                 continue
 
             new_media_url = os.path.join(
@@ -161,7 +164,7 @@ class FolderMigration:
     def send_bulk(self):
         """send bulk request to update index with new urls"""
         if not self.bulk_list:
-            print("nothing to update")
+            logger.info("nothing to update")
             return
 
         self.bulk_list.append("\n")
@@ -169,7 +172,7 @@ class FolderMigration:
         data = "\n".join(self.bulk_list)
         response, status = ElasticWrap(path).post(data=data, ndjson=True)
         if not status == 200:
-            print(response)
+            logger.info(response)
 
         self.bulk_list = []
 

@@ -10,7 +10,9 @@ from home.src.es.connect import ElasticWrap
 from home.src.es.snapshot import ElasticSnapshot
 from home.src.ta.config import AppConfig
 from home.src.ta.helper import get_mapping
+import logging
 
+logger = logging.getLogger(__name__)
 
 class ElasticIndex:
     """interact with a single index"""
@@ -56,23 +58,23 @@ class ElasticIndex:
             if list(value.keys()) == ["properties"]:
                 for key_n, value_n in value["properties"].items():
                     if key not in now_map:
-                        print(f"detected mapping change: {key_n}, {value_n}")
+                        logger.info(f"detected mapping change: {key_n}, {value_n}")
                         return True
                     if key_n not in now_map[key]["properties"].keys():
-                        print(f"detected mapping change: {key_n}, {value_n}")
+                        logger.info(f"detected mapping change: {key_n}, {value_n}")
                         return True
                     if not value_n == now_map[key]["properties"][key_n]:
-                        print(f"detected mapping change: {key_n}, {value_n}")
+                        logger.info(f"detected mapping change: {key_n}, {value_n}")
                         return True
 
                 continue
 
             # not nested
             if key not in now_map.keys():
-                print(f"detected mapping change: {key}, {value}")
+                logger.info(f"detected mapping change: {key}, {value}")
                 return True
             if not value == now_map[key]:
-                print(f"detected mapping change: {key}, {value}")
+                logger.info(f"detected mapping change: {key}, {value}")
                 return True
 
         return False
@@ -84,18 +86,18 @@ class ElasticIndex:
 
         for key, value in self.expected_set.items():
             if key not in now_set.keys():
-                print(key, value)
+                logger.info(key, value)
                 return True
 
             if not value == now_set[key]:
-                print(key, value)
+                logger.info(key, value)
                 return True
 
         return False
 
     def rebuild_index(self):
         """rebuild with new mapping"""
-        print(f"applying new mappings to index ta_{self.index_name}...")
+        logger.info(f"applying new mappings to index ta_{self.index_name}...")
         self.create_blank(for_backup=True)
         self.reindex("backup")
         self.delete_index(backup=False)
@@ -125,7 +127,7 @@ class ElasticIndex:
 
     def create_blank(self, for_backup=False):
         """apply new mapping and settings for blank new index"""
-        print(f"create new blank index with name ta_{self.index_name}...")
+        logger.info(f"create new blank index with name ta_{self.index_name}...")
         path = f"ta_{self.index_name}"
         if for_backup:
             path = f"{path}_backup"
@@ -162,7 +164,7 @@ class ElasitIndexWrap:
                 continue
 
             # else all good
-            print(f"ta_{index_name} index is created and up to date...")
+            logger.info(f"ta_{index_name} index is created and up to date...")
 
     def reset(self):
         """reset all indexes to blank"""
@@ -171,7 +173,7 @@ class ElasitIndexWrap:
 
     def delete_all(self):
         """delete all indexes"""
-        print("reset elastic index")
+        logger.info("reset elastic index")
         for index in self.index_config:
             index_name, _, _ = self._config_split(index)
             handler = ElasticIndex(index_name)
@@ -179,7 +181,7 @@ class ElasitIndexWrap:
 
     def create_all_blank(self):
         """create all blank indexes"""
-        print("create all new indexes in elastic from template")
+        logger.info("create all new indexes in elastic from template")
         for index in self.index_config:
             index_name, expected_map, expected_set = self._config_split(index)
             handler = ElasticIndex(index_name, expected_map, expected_set)

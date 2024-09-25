@@ -4,11 +4,14 @@ Functionality:
 - encapsulate persistence of user properties
 """
 
+import logging
+
 from typing import TypedDict
 
 from home.src.es.connect import ElasticWrap
 from home.src.ta.helper import get_stylesheets
 
+logger = logging.getLogger(__name__)
 
 class UserConfigType(TypedDict, total=False):
     """describes the user configuration"""
@@ -86,7 +89,7 @@ class UserConfig:
         if status < 200 or status > 299:
             raise ValueError(f"Failed storing user value {status}: {response}")
 
-        print(f"User {self._user_id} value '{key}' change: {old} -> {value}")
+        logger.info(f"User {self._user_id} value '{key}' change: {old} -> {value}")
 
     def _validate(self, key, value):
         """validate key and value"""

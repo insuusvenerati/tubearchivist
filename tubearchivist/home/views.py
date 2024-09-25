@@ -7,6 +7,7 @@ Functionality:
 import enum
 import urllib.parse
 import uuid
+import logging
 from time import sleep
 
 from api.src.search_processor import SearchProcess, process_aggs
@@ -55,6 +56,7 @@ from home.src.ta.users import UserConfig
 from home.tasks import index_channel_playlists, subscribe_to
 from rest_framework.authtoken.models import Token
 
+logger = logging.getLogger(__name__)
 
 class ArchivistViewConfig(View):
     """base view class to generate initial config context"""
@@ -310,7 +312,7 @@ class LoginView(MinView):
                 request.session.set_expiry(self.SEC_IN_DAY * 365)
             else:
                 request.session.set_expiry(self.SEC_IN_DAY * 2)
-            print(f"expire session in {request.session.get_expiry_age()} secs")
+            logger.info(f"expire session in {request.session.get_expiry_age()} secs")
 
             next_url = request.POST.get("next") or "home"
             user = form.get_user()
@@ -546,7 +548,7 @@ class ChannelIdView(ChannelIdBaseView):
             if t and isinstance(t, enum.Enum):
                 vid_type_terms.append(t.value)
             else:
-                print(
+                logger.info(
                     "Invalid value passed into video_types on "
                     + f"ChannelIdView: {t}"
                 )
@@ -619,11 +621,11 @@ class ChannelIdAboutView(ChannelIdBaseView):
     @staticmethod
     def post(request, channel_id):
         """handle post request"""
-        print(f"handle post from {channel_id}")
+        logger.info(f"handle post from {channel_id}")
         channel_overwrite_form = ChannelOverwriteForm(request.POST)
         if channel_overwrite_form.is_valid():
             overwrites = channel_overwrite_form.cleaned_data
-            print(f"{channel_id}: set overwrites {overwrites}")
+            logger.info(f"{channel_id}: set overwrites {overwrites}")
             channel_overwrites(channel_id, overwrites=overwrites)
             if overwrites.get("index_playlists") == "1":
                 index_channel_playlists.delay(channel_id)
@@ -707,7 +709,7 @@ class ChannelView(ArchivistResultsView):
         subscribe_form = SubscribeToChannelForm(data=request.POST)
         if subscribe_form.is_valid():
             url_str = request.POST.get("subscribe")
-            print(url_str)
+            logger.info(url_str)
             subscribe_to.delay(url_str, expected_type="channel")
 
         sleep(1)
@@ -862,7 +864,7 @@ class PlaylistView(ArchivistResultsView):
             subscribe_form = SubscribeToPlaylistForm(data=request.POST)
             if subscribe_form.is_valid():
                 url_str = request.POST.get("subscribe")
-                print(url_str)
+                logger.info(url_str)
                 subscribe_to.delay(url_str, expected_type="playlist")
 
         sleep(1)
@@ -1058,7 +1060,7 @@ class SettingsApplicationView(MinView):
         if app_form.is_valid():
             app_form_post = app_form.cleaned_data
             if app_form_post:
-                print(app_form_post)
+                logger.info(app_form_post)
                 updated = config_handler.update_config(app_form_post)
                 self.post_process_updated(updated, config_handler.config)
 
@@ -1083,7 +1085,7 @@ class SettingsApplicationView(MinView):
             try:
                 handler.import_cookie()
             except FileNotFoundError:
-                print("cookie: import failed, file not found")
+                logger.info("cookie: import failed, file not found")
                 handler.revoke()
                 self._fail_message("Cookie file not found.")
                 return
@@ -1131,7 +1133,7 @@ class SettingsSchedulingView(MinView):
 
         if notification_form.is_valid():
             notification_form_post = notification_form.cleaned_data
-            print(notification_form_post)
+            logger.info(notification_form_post)
             if any(notification_form_post.values()):
                 task_name = notification_form_post.get("task")
                 url = notification_form_post.get("notification_url")
@@ -1140,7 +1142,7 @@ class SettingsSchedulingView(MinView):
         if scheduler_form.is_valid():
             scheduler_form_post = scheduler_form.cleaned_data
             if any(scheduler_form_post.values()):
-                print(scheduler_form_post)
+                logger.info(scheduler_form_post)
                 ScheduleBuilder().update_schedule_conf(scheduler_form_post)
         else:
             self.fail_message()

@@ -8,6 +8,7 @@ import os
 import random
 import string
 import subprocess
+import logging
 from datetime import datetime
 from typing import Any
 from urllib.parse import urlparse
@@ -16,6 +17,7 @@ import requests
 from home.src.es.connect import IndexPaginate
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 def ignore_filelist(filelist: list[str]) -> list[str]:
     """ignore temp files for os.listdir sanitizer"""
@@ -119,7 +121,7 @@ def time_parser(timestamp: str) -> float:
 
 def clear_dl_cache(cache_dir: str) -> int:
     """clear leftover files from dl cache"""
-    print("clear download cache")
+    logger.info("clear download cache")
     download_cache_dir = os.path.join(cache_dir, "download")
     leftover_files = ignore_filelist(os.listdir(download_cache_dir))
     for cached in leftover_files:

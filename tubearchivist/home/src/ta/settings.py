@@ -5,7 +5,9 @@ Functionality:
 """
 
 from os import environ
+import logging
 
+logger = logging.getLogger(__name__)
 
 class EnvironmentSettings:
     """
@@ -45,8 +47,8 @@ class EnvironmentSettings:
     ES_DISABLE_VERIFY_SSL: bool = bool(environ.get("ES_DISABLE_VERIFY_SSL"))
 
     def print_generic(self):
-        """print generic env vars"""
-        print(
+        """logger.info generic env vars"""
+        logger.info(
             f"""
             HOST_UID: {self.HOST_UID}
             HOST_GID: {self.HOST_GID}
@@ -60,7 +62,7 @@ class EnvironmentSettings:
 
     def print_paths(self):
         """debug paths set"""
-        print(
+        logger.info(
             f"""
             MEDIA_DIR: {self.MEDIA_DIR}
             APP_DIR: {self.APP_DIR}
@@ -69,7 +71,7 @@ class EnvironmentSettings:
 
     def print_redis_conf(self):
         """debug redis conf paths"""
-        print(
+        logger.info(
             f"""
             REDIS_HOST: {self.REDIS_HOST}
             REDIS_PORT: {self.REDIS_PORT}
@@ -78,7 +80,7 @@ class EnvironmentSettings:
 
     def print_es_paths(self):
         """debug es conf"""
-        print(
+        logger.info(
             f"""
             ES_URL: {self.ES_URL}
             ES_PASS: *****
@@ -88,7 +90,7 @@ class EnvironmentSettings:
         )
 
     def print_all(self):
-        """print all"""
+        """logger.info all"""
         self.print_generic()
         self.print_paths()
         self.print_redis_conf()

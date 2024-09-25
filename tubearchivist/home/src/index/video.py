@@ -5,6 +5,7 @@ functionality:
 """
 
 import os
+import logging
 from datetime import datetime
 
 import requests
@@ -22,6 +23,7 @@ from home.src.ta.settings import EnvironmentSettings
 from home.src.ta.users import UserConfig
 from ryd_client import ryd_client
 
+logger = logging.getLogger(__name__)
 
 class SponsorBlock:
     """handle sponsor block integration"""
@@ -50,15 +52,15 @@ class SponsorBlock:
         """get timestamps from the API"""
         url = f"{self.API}/skipSegments?videoID={youtube_id}"
         headers = {"User-Agent": self.user_agent}
-        print(f"{youtube_id}: get sponsorblock timestamps")
+        logger.info(f"{youtube_id}: get sponsorblock timestamps")
         try:
             response = requests.get(url, headers=headers, timeout=10)
         except requests.ReadTimeout:
-            print(f"{youtube_id}: sponsorblock API timeout")
+            logger.info(f"{youtube_id}: sponsorblock API timeout")
             return False
 
         if not response.ok:
-            print(f"{youtube_id}: sponsorblock failed: {response.status_code}")
+            logger.info(f"{youtube_id}: sponsorblock failed: {response.status_code}")
             if response.status_code == 503:
                 return False
 
@@ -98,8 +100,8 @@ class SponsorBlock:
             "userAgent": self.user_agent,
         }
         url = f"{self.API}/skipSegments?videoID={youtube_id}"
-        print(f"post: {data}")
-        print(f"to: {url}")
+        logger.info(f"post: {data}")
+        logger.info(f"to: {url}")
 
         return {"success": True}, 200
 
@@ -112,8 +114,8 @@ class SponsorBlock:
             "type": vote,
         }
         url = f"{self.API}/api/voteOnSponsorTime"
-        print(f"post: {data}")
-        print(f"to: {url}")
+        logger.info(f"post: {data}")
+        logger.info(f"to: {url}")
 
         return {"success": True}, 200
 
@@ -278,7 +280,7 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
 
     def delete_media_file(self):
         """delete video file, meta data"""
-        print(f"{self.youtube_id}: delete video")
+        logger.info(f"{self.youtube_id}: delete video")
         self.get_from_es()
         if not self.json_data:
             raise FileNotFoundError
@@ -289,7 +291,7 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
         try:
             os.remove(file_path)
         except FileNotFoundError:
-            print(f"{self.youtube_id}: failed {media_url}, continue.")
+            logger.info(f"{self.youtube_id}: failed {media_url}, continue.")
 
         self.del_in_playlists()
         self.del_in_es()
@@ -303,7 +305,7 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
             return
 
         for playlist_id in all_playlists:
-            print(f"{playlist_id}: delete video {self.youtube_id}")
+            logger.info(f"{playlist_id}: delete video {self.youtube_id}")
             playlist = ta_playlist.YoutubePlaylist(playlist_id)
             playlist.get_from_es()
             entries = playlist.json_data["playlist_entries"]
@@ -318,7 +320,7 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
 
     def delete_subtitles(self, subtitles=False):
         """delete indexed subtitles"""
-        print(f"{self.youtube_id}: delete subtitles")
+        logger.info(f"{self.youtube_id}: delete subtitles")
         YoutubeSubtitle(self).delete(subtitles=subtitles)
 
     def delete_comments(self):
@@ -332,10 +334,10 @@ class YoutubeVideo(YouTubeItem, YoutubeSubtitle):
         """get optional stats from returnyoutubedislikeapi.com"""
         # pylint: disable=broad-except
         try:
-            print(f"{self.youtube_id}: get ryd stats")
+            logger.info(f"{self.youtube_id}: get ryd stats")
             result = ryd_client.get(self.youtube_id)
         except Exception as err:
-            print(f"{self.youtube_id}: failed to query ryd api {err}")
+            logger.info(f"{self.youtube_id}: failed to query ryd api {err}")
             return
 
         if result["status"] == 404:

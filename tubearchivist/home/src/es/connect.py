@@ -8,11 +8,13 @@ functionality:
 
 import json
 from typing import Any
+import logging
 
 import requests
 import urllib3
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 class ElasticWrap:
     """makes all calls to elastic search
@@ -51,7 +53,7 @@ class ElasticWrap:
         response = requests.get(self.url, **kwargs)
 
         if print_error and not response.ok:
-            print(response.text)
+            logger.info(response.text)
 
         return response.json(), response.status_code
 
@@ -83,7 +85,7 @@ class ElasticWrap:
         response = requests.post(self.url, **kwargs)
 
         if not response.ok:
-            print(response.text)
+            logger.info(response.text)
 
         return response.json(), response.status_code
 
@@ -108,8 +110,8 @@ class ElasticWrap:
         response = requests.put(self.url, **kwargs)
 
         if not response.ok:
-            print(response.text)
-            print(data)
+            logger.info(response.text)
+            logger.info(data)
             raise ValueError("failed to add item to index")
 
         return response.json(), response.status_code
@@ -135,7 +137,7 @@ class ElasticWrap:
         response = requests.delete(self.url, **kwargs)
 
         if not response.ok:
-            print(response.text)
+            logger.info(response.text)
 
         return response.json(), response.status_code
 
@@ -208,7 +210,7 @@ class IndexPaginate:
                 ).run()
 
             if self.kwargs.get("task"):
-                print(f"{self.index_name}: processing page {counter}")
+                logger.info(f"{self.index_name}: processing page {counter}")
                 self._notify(len(all_results))
 
             counter += 1

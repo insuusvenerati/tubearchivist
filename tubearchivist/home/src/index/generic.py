@@ -4,12 +4,14 @@ functionality:
 """
 
 import math
+import logging
 
 from home.src.download.yt_dlp_base import YtWrap
 from home.src.es.connect import ElasticWrap
 from home.src.ta.config import AppConfig
 from home.src.ta.users import UserConfig
 
+logger = logging.getLogger(__name__)
 
 class YouTubeItem:
     """base class for youtube"""
@@ -35,7 +37,7 @@ class YouTubeItem:
 
     def get_from_youtube(self):
         """use yt-dlp to get meta data from youtube"""
-        print(f"{self.youtube_id}: get metadata from youtube")
+        logger.info(f"{self.youtube_id}: get metadata from youtube")
         obs_request = self.yt_obs.copy()
         if self.config["downloads"]["extractor_lang"]:
             langs = self.config["downloads"]["extractor_lang"]
@@ -47,7 +49,7 @@ class YouTubeItem:
 
     def get_from_es(self):
         """get indexed data from elastic search"""
-        print(f"{self.youtube_id}: get metadata from es")
+        logger.info(f"{self.youtube_id}: get metadata from es")
         response, _ = ElasticWrap(f"{self.es_path}").get()
         source = response.get("_source")
         self.json_data = source
@@ -58,7 +60,7 @@ class YouTubeItem:
 
     def deactivate(self):
         """deactivate document in es"""
-        print(f"{self.youtube_id}: deactivate document")
+        logger.info(f"{self.youtube_id}: deactivate document")
         key_match = {
             "ta_video": "active",
             "ta_channel": "channel_active",
@@ -72,7 +74,7 @@ class YouTubeItem:
 
     def del_in_es(self):
         """delete item from elastic search"""
-        print(f"{self.youtube_id}: delete from es")
+        logger.info(f"{self.youtube_id}: delete from es")
         _, _ = ElasticWrap(self.es_path).delete(refresh=True)
 
 

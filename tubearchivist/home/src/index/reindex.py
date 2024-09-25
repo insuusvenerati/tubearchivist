@@ -6,6 +6,7 @@ functionality:
 
 import json
 import os
+import logging
 from datetime import datetime
 from time import sleep
 from typing import Callable, TypedDict
@@ -23,6 +24,7 @@ from home.src.ta.config import AppConfig
 from home.src.ta.settings import EnvironmentSettings
 from home.src.ta.ta_redis import RedisQueue
 
+logger = logging.getLogger(__name__)
 
 class ReindexConfigType(TypedDict):
     """represents config type"""
@@ -187,7 +189,7 @@ class ReindexManual(ReindexBase):
         for key, values in self.data.items():
             reindex_config = self.REINDEX_CONFIG.get(key)
             if not reindex_config:
-                print(f"reindex type {key} not valid")
+                logger.info(f"reindex type {key} not valid")
                 raise ValueError
 
             self.process_index(reindex_config, values)
@@ -266,7 +268,7 @@ class Reindex(ReindexBase):
     def reindex_all(self) -> None:
         """reindex all in queue"""
         if not self.cookie_is_valid():
-            print("[reindex] cookie invalid, exiting...")
+            logger.info("[reindex] cookie invalid, exiting...")
             return
 
         for name, index_config in self.REINDEX_CONFIG.items():
@@ -456,7 +458,7 @@ class ReindexProgress(ReindexBase):
 
         reindex_config = self.REINDEX_CONFIG.get(self.request_type)
         if not reindex_config:
-            print(f"reindex_config not found: {self.request_type}")
+            logger.info(f"reindex_config not found: {self.request_type}")
             raise ValueError
 
         return reindex_config["queue_name"], self.request_type
@@ -504,7 +506,7 @@ class ChannelFullScan:
 
     def scan(self):
         """match local with remote"""
-        print(f"{self.channel_id}: start full scan")
+        logger.info(f"{self.channel_id}: start full scan")
         all_local_videos = self._get_all_local()
         all_remote_videos = self._get_all_remote()
         self.to_update = []
@@ -512,7 +514,7 @@ class ChannelFullScan:
             video_id = video["youtube_id"]
             remote_match = [i for i in all_remote_videos if i[0] == video_id]
             if not remote_match:
-                print(f"{video_id}: no remote match found")
+                logger.info(f"{video_id}: no remote match found")
                 continue
 
             expected_type = remote_match[0][-1]
@@ -545,10 +547,10 @@ class ChannelFullScan:
     def update(self):
         """build bulk query for updates"""
         if not self.to_update:
-            print(f"{self.channel_id}: nothing to update")
+            logger.info(f"{self.channel_id}: nothing to update")
             return
 
-        print(f"{self.channel_id}: fixing {len(self.to_update)} videos")
+        logger.info(f"{self.channel_id}: fixing {len(self.to_update)} videos")
         bulk_list = []
         for video in self.to_update:
             action = {

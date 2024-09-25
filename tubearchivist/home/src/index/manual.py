@@ -10,6 +10,7 @@ import os
 import re
 import shutil
 import subprocess
+import logging
 
 from home.src.download.thumbnails import ThumbManager
 from home.src.index.comments import CommentList
@@ -20,6 +21,7 @@ from home.src.ta.settings import EnvironmentSettings
 from PIL import Image
 from yt_dlp.utils import ISO639Utils
 
+logger = logging.getLogger(__name__)
 
 class ImportFolderScanner:
     """import and indexing existing video files
@@ -91,7 +93,7 @@ class ImportFolderScanner:
 
             if base_name != last_base:
                 if last_base:
-                    print(f"manual import: {current_video}")
+                    logger.info(f"manual import: {current_video}")
                     self.to_import.append(current_video)
 
                 current_video = self._get_template()
@@ -103,7 +105,7 @@ class ImportFolderScanner:
                 current_video[key] = file_path
 
         if current_video.get("media"):
-            print(f"manual import: {current_video}")
+            logger.info(f"manual import: {current_video}")
             self.to_import.append(current_video)
 
     def _detect_base_name(self, file_path):
@@ -131,7 +133,7 @@ class ImportFolderScanner:
         """loop through all videos"""
         for idx, current_video in enumerate(self.to_import):
             if not current_video["media"]:
-                print(f"{current_video}: no matching media file found.")
+                logger.info(f"{current_video}: no matching media file found.")
                 raise ValueError
 
             if self.task:
@@ -142,7 +144,7 @@ class ImportFolderScanner:
             self._convert_thumb(current_video)
             self._get_subtitles(current_video)
             self._convert_video(current_video)
-            print(f"manual import: {current_video}")
+            logger.info(f"manual import: {current_video}")
 
             ManualImport(current_video, self.CONFIG).run()
 
@@ -190,7 +192,7 @@ class ImportFolderScanner:
             youtube_id = id_search.group(1)
             return youtube_id
 
-        print(f"id extraction failed from filename: {file_name}")
+        logger.info(f"id extraction failed from filename: {file_name}")
 
         return False
 
@@ -299,7 +301,7 @@ class ImportFolderScanner:
         base_path, ext = os.path.splitext(media_path)
 
         if ext == ".webm":
-            print(f"{media_path}: subtitle extract from webm not supported")
+            logger.info(f"{media_path}: subtitle extract from webm not supported")
             return
 
         for idx, stream in enumerate(streams["streams"]):
@@ -407,7 +409,7 @@ class ManualImport:
             media_path=self.current_video["media"],
         )
         if not video.json_data:
-            print(f"{video_id}: manual import failed, and no metadata found.")
+            logger.info(f"{video_id}: manual import failed, and no metadata found.")
             raise ValueError
 
         video.check_subtitles(subtitle_files=self.current_video["subtitle"])

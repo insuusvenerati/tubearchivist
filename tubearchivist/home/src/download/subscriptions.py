@@ -4,6 +4,8 @@ Functionality:
 - handle playlist subscriptions
 """
 
+import logging
+
 from home.src.download.thumbnails import ThumbManager
 from home.src.download.yt_dlp_base import YtWrap
 from home.src.es.connect import IndexPaginate
@@ -15,6 +17,7 @@ from home.src.ta.config import AppConfig
 from home.src.ta.helper import is_missing
 from home.src.ta.urlparser import Parser
 
+logger = logging.getLogger(__name__)
 
 class ChannelSubscription:
     """manage the list of channels subscribed"""
@@ -85,7 +88,7 @@ class ChannelSubscription:
         total = len(all_channels)
         for idx, channel in enumerate(all_channels):
             channel_id = channel["channel_id"]
-            print(f"{channel_id}: find missing videos.")
+            logger.info(f"{channel_id}: find missing videos.")
             last_videos = self.get_last_youtube_videos(
                 channel_id,
                 channel_overwrites=channel.get("channel_overwrites"),
@@ -237,14 +240,14 @@ class PlaylistSubscription:
         for idx, playlist in enumerate(new_playlists):
             playlist_id = playlist["url"]
             if not playlist["type"] == "playlist":
-                print(f"{playlist_id} not a playlist, skipping...")
+                logger.info(f"{playlist_id} not a playlist, skipping...")
                 continue
 
             playlist_h = YoutubePlaylist(playlist_id)
             playlist_h.build_json()
             if not playlist_h.json_data:
                 message = f"{playlist_h.youtube_id}: failed to extract data"
-                print(message)
+                logger.info(message)
                 raise ValueError(message)
 
             playlist_h.json_data["playlist_subscribed"] = subscribed

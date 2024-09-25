@@ -3,11 +3,14 @@ functionality:
 - handle watched state for videos, channels and playlists
 """
 
+import logging
+
 from datetime import datetime
 
 from home.src.es.connect import ElasticWrap
 from home.src.ta.urlparser import Parser
 
+logger = logging.getLogger(__name__)
 
 class WatchState:
     """handle watched checkbox for videos and channels"""
@@ -20,7 +23,7 @@ class WatchState:
 
     def change(self):
         """change watched state of item(s)"""
-        print(f"{self.youtube_id}: change watched state to {self.is_watched}")
+        logger.info(f"{self.youtube_id}: change watched state to {self.is_watched}")
         url_type = self._dedect_type()
         if url_type == "video":
             self.change_vid_state()
@@ -51,7 +54,7 @@ class WatchState:
         }
         response, status_code = ElasticWrap(path).post(data=data)
         if status_code != 200:
-            print(response)
+            logger.info(response)
             raise ValueError("failed to mark video as watched")
 
     def _build_update_data(self, url_type):

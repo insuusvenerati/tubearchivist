@@ -4,11 +4,13 @@ Functionality:
 - identify vid_type if possible
 """
 
+import logging
 from urllib.parse import parse_qs, urlparse
 
 from home.src.download.yt_dlp_base import YtWrap
 from home.src.index.video_constants import VideoTypeEnum
 
+logger = logging.getLogger(__name__)
 
 class Parser:
     """take a multi line string and detect valid youtube ids"""
@@ -124,7 +126,7 @@ class Parser:
 
             return channel_id
 
-        print(f"failed to extract channel id from {url}")
+        logger.info(f"failed to extract channel id from {url}")
         raise ValueError
 
     def _detect_vid_type(self, path):

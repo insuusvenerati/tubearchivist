@@ -3,7 +3,9 @@
 from home.src.es.connect import ElasticWrap
 from home.src.ta.helper import get_duration_str
 from home.src.ta.settings import EnvironmentSettings
+import logging
 
+logger = logging.getLogger(__name__)
 
 class AggBase:
     """base class for aggregation calls"""
@@ -15,7 +17,7 @@ class AggBase:
     def get(self):
         """make get call"""
         response, _ = ElasticWrap(self.path).get(self.data)
-        print(f"[agg][{self.name}] took {response.get('took')} ms to process")
+        logger.info(f"[agg][{self.name}] took {response.get('took')} ms to process")
 
         return response.get("aggregations")
 

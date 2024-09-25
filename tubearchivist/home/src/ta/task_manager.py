@@ -4,10 +4,13 @@ functionality:
 - handle threads and locks
 """
 
+import logging
+
 from home.celery import app as celery_app
 from home.src.ta.ta_redis import RedisArchivist, TaskRedis
 from home.src.ta.task_config import TASK_CONFIG
 
+logger = logging.getLogger(__name__)
 
 class TaskManager:
     """manage tasks"""
@@ -101,7 +104,7 @@ class TaskCommand:
         send stop signal to task_id,
         needs to be implemented in task to take effect
         """
-        print(f"[task][{task_id}]: received STOP signal.")
+        logger.info(f"[task][{task_id}]: received STOP signal.")
         handler = TaskRedis()
 
         task = handler.get_single(task_id)
@@ -113,5 +116,5 @@ class TaskCommand:
 
     def kill(self, task_id):
         """send kill signal to task_id"""
-        print(f"[task][{task_id}]: received KILL signal.")
+        logger.info(f"[task][{task_id}]: received KILL signal.")
         celery_app.control.revoke(task_id, terminate=True)

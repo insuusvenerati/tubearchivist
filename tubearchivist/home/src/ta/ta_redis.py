@@ -6,10 +6,12 @@ functionality:
 """
 
 import json
+import logging
 
 import redis
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 class RedisBase:
     """connection base for redis"""
@@ -219,12 +221,12 @@ class TaskRedis(RedisBase):
     def set_command(self, task_id: str, command: str) -> None:
         """set task command"""
         if command not in self.COMMANDS:
-            print(f"{command} not in valid commands {self.COMMANDS}")
+            logger.info(f"{command} not in valid commands {self.COMMANDS}")
             raise ValueError
 
         message = self.get_single(task_id)
         if not message:
-            print(f"{task_id} not found")
+            logger.info(f"{task_id} not found")
             raise KeyError
 
         message.update({"command": command})

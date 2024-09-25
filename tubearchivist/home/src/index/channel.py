@@ -7,6 +7,7 @@ functionality:
 import json
 import os
 from datetime import datetime
+import logging
 
 from home.src.download.thumbnails import ThumbManager
 from home.src.download.yt_dlp_base import YtWrap
@@ -15,6 +16,7 @@ from home.src.index.generic import YouTubeItem
 from home.src.index.playlist import YoutubePlaylist
 from home.src.ta.settings import EnvironmentSettings
 
+logger = logging.getLogger(__name__)
 
 class YoutubeChannel(YouTubeItem):
     """represents a single youtube channel"""
@@ -109,7 +111,7 @@ class YoutubeChannel(YouTubeItem):
 
     def _video_fallback(self, fallback):
         """use video metadata as fallback"""
-        print(f"{self.youtube_id}: fallback to video metadata")
+        logger.info(f"{self.youtube_id}: fallback to video metadata")
         self.json_data = {
             "channel_active": False,
             "channel_last_refresh": int(datetime.now().timestamp()),
@@ -134,7 +136,7 @@ class YoutubeChannel(YouTubeItem):
             f"{self.youtube_id}.info.json",
         )
         if os.path.exists(info_json):
-            print(f"{self.youtube_id}: read info.json file")
+            logger.info(f"{self.youtube_id}: read info.json file")
             with open(info_json, "r", encoding="utf-8") as f:
                 content = json.loads(f.read())
 
@@ -213,13 +215,13 @@ class YoutubeChannel(YouTubeItem):
 
     def delete_channel(self):
         """delete channel and all videos"""
-        print(f"{self.youtube_id}: delete channel")
+        logger.info(f"{self.youtube_id}: delete channel")
         self.get_from_es()
         if not self.json_data:
             raise FileNotFoundError
 
         folder_path = self.get_folder_path()
-        print(f"{self.youtube_id}: delete all media files")
+        logger.info(f"{self.youtube_id}: delete all media files")
         try:
             all_videos = os.listdir(folder_path)
             for video in all_videos:
@@ -227,11 +229,11 @@ class YoutubeChannel(YouTubeItem):
                 os.remove(video_path)
             os.rmdir(folder_path)
         except FileNotFoundError:
-            print(f"no videos found for {folder_path}")
+            logger.info(f"no videos found for {folder_path}")
 
-        print(f"{self.youtube_id}: delete indexed playlists")
+        logger.info(f"{self.youtube_id}: delete indexed playlists")
         self.delete_playlists()
-        print(f"{self.youtube_id}: delete indexed videos")
+        logger.info(f"{self.youtube_id}: delete indexed videos")
         self.delete_es_videos()
         self.delete_es_comments()
         self.delete_es_subtitles()
@@ -239,13 +241,13 @@ class YoutubeChannel(YouTubeItem):
 
     def index_channel_playlists(self):
         """add all playlists of channel to index"""
-        print(f"{self.youtube_id}: index all playlists")
+        logger.info(f"{self.youtube_id}: index all playlists")
         self.get_from_es()
         channel_name = self.json_data["channel_name"]
         self.task.send_progress([f"{channel_name}: Looking for Playlists"])
         self.get_all_playlists()
         if not self.all_playlists:
-            print(f"{self.youtube_id}: no playlists found.")
+            logger.info(f"{self.youtube_id}: no playlists found.")
             return
 
         total = len(self.all_playlists)
@@ -254,7 +256,7 @@ class YoutubeChannel(YouTubeItem):
                 self._notify_single_playlist(idx, total)
 
             self._index_single_playlist(playlist)
-            print("add playlist: " + playlist[1])
+            logger.info("add playlist: " + playlist[1])
 
     def _notify_single_playlist(self, idx, total):
         """send notification"""

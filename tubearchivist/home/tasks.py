@@ -6,6 +6,8 @@ Functionality:
 - handle task locking
 """
 
+import logging
+
 from celery import Task, shared_task
 from celery.exceptions import Retry
 from home.src.download.queue import PendingList
@@ -28,6 +30,7 @@ from home.src.ta.task_config import TASK_CONFIG
 from home.src.ta.task_manager import TaskManager
 from home.src.ta.urlparser import Parser
 
+logger = logging.getLogger(__name__)
 
 class BaseTask(Task):
     """base class to inherit each class from"""
@@ -36,28 +39,28 @@ class BaseTask(Task):
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """callback for task failure"""
-        print(f"{task_id} Failed callback")
+        logger.info(f"{task_id} Failed callback")
         message, key = self._build_message(level="error")
         message.update({"messages": [f"Task failed: {exc}"]})
         RedisArchivist().set_message(key, message, expire=20)
 
     def on_success(self, retval, task_id, args, kwargs):
         """callback task completed successfully"""
-        print(f"{task_id} success callback")
+        logger.info(f"{task_id} success callback")
         message, key = self._build_message()
         message.update({"messages": ["Task completed successfully"]})
         RedisArchivist().set_message(key, message, expire=5)
 
     def before_start(self, task_id, args, kwargs):
         """callback before initiating task"""
-        print(f"{self.name} create callback")
+        logger.info(f"{self.name} create callback")
         message, key = self._build_message()
         message.update({"messages": ["New task received."]})
         RedisArchivist().set_message(key, message)
 
     def after_return(self, status, retval, task_id, args, kwargs, einfo):
         """callback after task returns"""
-        print(f"{task_id} return callback")
+        logger.info(f"{task_id} return callback")
         task_title = TASK_CONFIG.get(self.name).get("title")
         Notifications(self.name).send(task_id, task_title)
 
@@ -98,7 +101,7 @@ def update_subscribed(self):
     """look for missing videos and add to pending"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] rescan already running")
+        logger.info(f"[task][{self.name}] rescan already running")
         self.send_progress("Rescan already in progress.")
         return None
 
@@ -107,7 +110,7 @@ def update_subscribed(self):
     missing_videos = handler.scan()
     auto_start = handler.auto_start
     if missing_videos:
-        print(missing_videos)
+        logger.info(missing_videos)
         extrac_dl.delay(missing_videos, auto_start=auto_start)
         message = f"Found {len(missing_videos)} videos to add to the queue."
         return message
@@ -126,7 +129,7 @@ def download_pending(self, auto_only=False):
     """download latest pending videos"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] download queue already running")
+        logger.info(f"[task][{self.name}] download queue already running")
         self.send_progress("Download Queue is already running.")
         return None
 
@@ -136,7 +139,7 @@ def download_pending(self, auto_only=False):
         downloaded, failed = downloader.run_queue(auto_only=auto_only)
 
         if failed:
-            print(f"[task][{self.name}] Videos failed, retry.")
+            logger.info(f"[task][{self.name}] Videos failed, retry.")
             self.send_progress("Videos failed, retry.")
             raise self.retry()
 
@@ -178,13 +181,13 @@ def check_reindex(self, data=False, extract_videos=False):
     """run the reindex main command"""
     if data:
         # started from frontend through API
-        print(f"[task][{self.name}] reindex {data}")
+        logger.info(f"[task][{self.name}] reindex {data}")
         self.send_progress("Add items to the reindex Queue.")
         ReindexManual(extract_videos=extract_videos).extract_data(data)
 
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] reindex queue is already running")
+        logger.info(f"[task][{self.name}] reindex queue is already running")
         self.send_progress("Reindex Queue is already running.")
         return
 
@@ -192,7 +195,7 @@ def check_reindex(self, data=False, extract_videos=False):
     if not data:
         # started from scheduler
         populate = ReindexPopulate()
-        print(f"[task][{self.name}] reindex outdated documents")
+        logger.info(f"[task][{self.name}] reindex outdated documents")
         self.send_progress("Add recent documents to the reindex Queue.")
         populate.get_interval()
         populate.add_recent()
@@ -210,7 +213,7 @@ def run_manual_import(self):
     """called from settings page, to go through import folder"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] manual import is already running")
+        logger.info(f"[task][{self.name}] manual import is already running")
         self.send_progress("Manual import is already running.")
         return
 
@@ -223,7 +226,7 @@ def run_backup(self, reason="auto"):
     """called from settings page, dump backup to zip file"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] backup is already running")
+        logger.info(f"[task][{self.name}] backup is already running")
         self.send_progress("Backup is already running.")
         return
 
@@ -236,7 +239,7 @@ def run_restore_backup(self, filename):
     """called from settings page, dump backup to zip file"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] restore is already running")
+        logger.info(f"[task][{self.name}] restore is already running")
         self.send_progress("Restore is already running.")
         return None
 
@@ -244,7 +247,7 @@ def run_restore_backup(self, filename):
     self.send_progress(["Reset your Index"])
     ElasitIndexWrap().reset()
     ElasticBackup(task=self).restore(filename)
-    print("index restore finished")
+    logger.info("index restore finished")
 
     return f"backup restore completed: {filename}"
 
@@ -254,7 +257,7 @@ def rescan_filesystem(self):
     """check the media folder for mismatches"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] filesystem rescan already running")
+        logger.info(f"[task][{self.name}] filesystem rescan already running")
         self.send_progress("Filesystem Rescan is already running.")
         return
 
@@ -270,7 +273,7 @@ def thumbnail_check(self):
     """validate thumbnails"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] thumbnail check is already running")
+        logger.info(f"[task][{self.name}] thumbnail check is already running")
         self.send_progress("Thumbnail check is already running.")
         return
 
@@ -285,7 +288,7 @@ def re_sync_thumbs(self):
     """sync thumbnails to mediafiles"""
     manager = TaskManager()
     if manager.is_pending(self):
-        print(f"[task][{self.name}] thumb re-embed is already running")
+        logger.info(f"[task][{self.name}] thumb re-embed is already running")
         self.send_progress("Thumbnail re-embed is already running.")
         return
 

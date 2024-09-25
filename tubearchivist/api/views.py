@@ -51,7 +51,9 @@ from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.response import Response
 from rest_framework.views import APIView
+import logging
 
+logger = logging.getLogger(__name__)
 
 def check_admin(user):
     """check for admin permission for restricted views"""
@@ -104,7 +106,7 @@ class ApiBaseView(APIView):
         try:
             self.response["data"] = SearchProcess(response).process()
         except KeyError:
-            print(f"item not found: {document_id}")
+            logger.info(f"item not found: {document_id}")
             self.response["data"] = False
         self.status_code = status_code
 
@@ -362,7 +364,7 @@ class ChannelApiListView(ApiBaseView):
         if query_filter:
             if query_filter not in self.valid_filter:
                 message = f"invalid url query filter: {query_filter}"
-                print(message)
+                logger.info(message)
                 return Response({"message": message}, status=400)
 
             must_list.append({"term": {"channel_subscribed": {"value": True}}})
@@ -379,7 +381,7 @@ class ChannelApiListView(ApiBaseView):
             to_add = data["data"]
         except KeyError:
             message = "missing expected data key"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
         pending = []
@@ -399,7 +401,7 @@ class ChannelApiListView(ApiBaseView):
     @staticmethod
     def _unsubscribe(channel_id: str):
         """unsubscribe"""
-        print(f"[{channel_id}] unsubscribe from channel")
+        logger.info(f"[{channel_id}] unsubscribe from channel")
         ChannelSubscription().change_subscribe(
             channel_id, channel_subscribed=False
         )
@@ -494,7 +496,7 @@ class PlaylistApiListView(ApiBaseView):
             to_add = data["data"]
         except KeyError:
             message = "missing expected data key"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
         pending = []
@@ -514,7 +516,7 @@ class PlaylistApiListView(ApiBaseView):
     @staticmethod
     def _unsubscribe(playlist_id: str):
         """unsubscribe"""
-        print(f"[{playlist_id}] unsubscribe from playlist")
+        logger.info(f"[{playlist_id}] unsubscribe from playlist")
         PlaylistSubscription().change_subscribe(
             playlist_id, subscribe_status=False
         )
@@ -558,7 +560,7 @@ class PlaylistApiView(ApiBaseView):
 
     def delete(self, request, playlist_id):
         """delete playlist"""
-        print(f"{playlist_id}: delete playlist")
+        logger.info(f"{playlist_id}: delete playlist")
         delete_videos = request.GET.get("delete-videos", False)
         if delete_videos:
             YoutubePlaylist(playlist_id).delete_videos_playlist()
@@ -608,7 +610,7 @@ class DownloadApiView(ApiBaseView):
         item_status = request.data.get("status")
         if item_status not in self.valid_status:
             message = f"{video_id}: invalid status {item_status}"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
         if item_status == "ignore-force":
@@ -621,7 +623,7 @@ class DownloadApiView(ApiBaseView):
             message = f"{video_id}: item not found {status_code}"
             return Response({"message": message}, status=404)
 
-        print(f"{video_id}: change status to {item_status}")
+        logger.info(f"{video_id}: change status to {item_status}")
         PendingInteract(video_id, item_status).update_status()
         if item_status == "priority":
             download_pending.delay(auto_only=True)
@@ -632,7 +634,7 @@ class DownloadApiView(ApiBaseView):
     def delete(request, video_id):
         # pylint: disable=unused-argument
         """delete single video from queue"""
-        print(f"{video_id}: delete from queue")
+        logger.info(f"{video_id}: delete from queue")
         PendingInteract(video_id).delete_item()
 
         return Response({"success": True})
@@ -658,7 +660,7 @@ class DownloadApiListView(ApiBaseView):
         if query_filter:
             if query_filter not in self.valid_filter:
                 message = f"invalid url query filter: {query_filter}"
-                print(message)
+                logger.info(message)
                 return Response({"message": message}, status=400)
 
             must_list.append({"term": {"status": {"value": query_filter}}})
@@ -683,7 +685,7 @@ class DownloadApiListView(ApiBaseView):
             to_add = data["data"]
         except KeyError:
             message = "missing expected data key"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
         pending = [i["youtube_id"] for i in to_add if i["status"] == "pending"]
@@ -697,11 +699,11 @@ class DownloadApiListView(ApiBaseView):
         query_filter = request.GET.get("filter", False)
         if query_filter not in self.valid_filter:
             message = f"invalid url query filter: {query_filter}"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
         message = f"delete queue by status: {query_filter}"
-        print(message)
+        logger.info(message)
         PendingInteract(status=query_filter).delete_by_status()
 
         return Response({"message": message})
@@ -738,7 +740,7 @@ class LoginApiView(ObtainAuthToken):
         user = serializer.validated_data["user"]
         token, _ = Token.objects.get_or_create(user=user)
 
-        print(f"returning token for user with id {user.pk}")
+        logger.info(f"returning token for user with id {user.pk}")
 
         return Response({"token": token.key, "user_id": user.pk})
 
@@ -1149,17 +1151,17 @@ class CookieView(ApiBaseView):
         cookie = request.data.get("cookie")
         if not cookie:
             message = "missing cookie key in request data"
-            print(message)
+            logger.info(message)
             return Response({"message": message}, status=400)
 
-        print(f"cookie preview:\n\n{cookie[:300]}")
+        logger.info(f"cookie preview:\n\n{cookie[:300]}")
         handler = CookieHandler(config)
         handler.set_cookie(cookie)
         validated = handler.validate()
         if not validated:
             handler.revoke()
             message = {"cookie_import": "fail", "cookie_validated": validated}
-            print(f"cookie: {message}")
+            logger.info(f"cookie: {message}")
             return Response({"message": message}, status=400)
 
         message = {"cookie_import": "done", "cookie_validated": validated}
@@ -1212,7 +1214,7 @@ class TokenView(ApiBaseView):
 
     @staticmethod
     def delete(request):
-        print("revoke API token")
+        logger.info("revoke API token")
         request.user.auth_token.delete()
         return Response({"success": True})
 
